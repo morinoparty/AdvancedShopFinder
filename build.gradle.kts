@@ -19,8 +19,7 @@ val version: String by project
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://oss.sonatype.org/content/groups/public/")
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://central.sonatype.com/repository/maven-snapshots/")
     maven("https://jitpack.io")
     maven("https://plugins.gradle.org/m2/")
     maven("https://repo.codemc.io/repository/maven-public/")
@@ -28,9 +27,6 @@ repositories {
 }
 
 dependencies {
-    implementation(gradleApi())
-    implementation(localGroovy())
-
     compileOnly(libs.paper.api)
 
     implementation(libs.bundles.commands)
@@ -102,11 +98,11 @@ tasks {
         )
     }
     runServer {
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
         downloadPlugins {
             modrinth("quickshop-hikari", "6.2.0.11")
             github("dmulloy2", "ProtocolLib", "5.4.0", "ProtocolLib.jar")
-            github("EssentialsX", "Essentials", "2.21.2", "EssentialsX-2.21.2.jar")
+            url("https://cdn.modrinth.com/data/hXiIvTyT/versions/Oa9ZDzZq/EssentialsX-2.21.2.jar")
             github("Milkbowl", "Vault", "1.7.3", "Vault.jar")
         }
     }
@@ -131,8 +127,9 @@ sourceSets.main {
             website = "https://github.com/morinoparty/AdvancedShopFinder"
             main = "$group.advancedshopfinder.AdvancedShopFinder"
             apiVersion = "1.20"
-            libraries = libs.bundles.coroutines.asString()
-            depend = listOf("QuickShop-Hikari", "ProtocolLib", "Vault")
+            libraries = libs.bundles.coroutines.asString() +
+                listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.0")
+            depend = listOf("QuickShop-Hikari", "ProtocolLib")
         }
     }
 }

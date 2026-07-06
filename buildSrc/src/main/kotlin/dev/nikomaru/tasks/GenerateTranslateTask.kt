@@ -29,8 +29,8 @@ open class GenerateTranslateTask : DefaultTask() {
 
         val gson = Gson()
 
-        val version = gson.fromJson(data, JsonObject::class.java).get("latest").asJsonObject.get("release").asString
-
+//        val version = gson.fromJson(data, JsonObject::class.java).get("latest").asJsonObject.get("release").asString
+        val version = "1.21.11"
         println("latestVersion: $version")
 
 
