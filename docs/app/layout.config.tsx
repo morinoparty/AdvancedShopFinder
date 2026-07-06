@@ -20,7 +20,7 @@ export function baseOptions(locale: string): BaseLayoutProps {
 		themeSwitch: {
 			enabled: false,
 		},
-		githubUrl: "https://github.com/Nlkomaru/AdvancedShopFinder",
+		githubUrl: "https://github.com/morinoparty/AdvancedShopFinder",
 		links: [
 			{
 				text: "Modrinth",

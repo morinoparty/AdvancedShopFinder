@@ -128,7 +128,7 @@ sourceSets.main {
         bukkitPluginYaml {
             name = rootProject.name
             version = project.version.toString()
-            website = "https://github.com/Nlkomaru/AdvancedShopFinder"
+            website = "https://github.com/morinoparty/AdvancedShopFinder"
             main = "$group.advancedshopfinder.AdvancedShopFinder"
             apiVersion = "1.20"
             libraries = libs.bundles.coroutines.asString()
