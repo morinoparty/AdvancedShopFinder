@@ -55,21 +55,20 @@ jobs:
           after="${before//v/}"
           sed -i 's/VersionPlaceholder/$after/' ./gradle.properties
 
-      - name: Configure Docusaurus for preview
+      - name: Configure docs base path for preview
         run: |
-          cd docs
-          # baseUrlを一時的に変更
-          sed -i 's#baseUrl: "/"#baseUrl: "/asf/${{ env.COMMIT_SHORT_SHA }}/docs/"#g' docusaurus.config.ts
-          # urlを一時的に変更
-          sed -i 's#url: "https://advanced-shop-finder.plugin.nikomaru.dev"#url: "https://mp-ci.nikomaru.dev/asf"#g' docusaurus.config.ts
+          # プレビューはサブパス配信のため basePath を設定する
+          echo "BASE_PATH=/asf/${{ env.COMMIT_SHORT_SHA }}/docs" >> $GITHUB_ENV
 
       - name: Install docs dependencies
         working-directory: docs
         run: pnpm install
 
 
-      - name: Build Docusaurus
+      - name: Build docs (Fumadocs)
         working-directory: docs
+        env:
+          BASE_PATH: ${{ env.BASE_PATH }}
         run: pnpm run build
 
       - name: Build with Gradle
@@ -83,7 +82,7 @@ jobs:
           mkdir -p ./upload/jars
           mv ./build/libs/*-all.jar ./upload/jars/AdvancedShopFinder-bukkit-${{ env.COMMIT_SHORT_SHA }}.jar
           mkdir -p ./upload/docs
-          cp -r ./docs/build/* ./upload/docs/
+          cp -r ./docs/out/* ./upload/docs/
           # CRC32チェックサムアルゴリズムを使用してS3互換エンドポイントとの互換性を確保
           aws s3 cp ./upload --endpoint-url ${S3_ENDPOINT} s3://${{ env.S3_UPLOAD_BUCKET }}/asf/${{ env.COMMIT_SHORT_SHA }} --recursive --checksum-algorithm=CRC32 || echo "S3 upload completed with warnings"
 

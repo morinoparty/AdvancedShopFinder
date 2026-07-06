@@ -1,0 +1,5 @@
+{
+	"title": "For Players",
+	"icon": "User",
+	"pages": ["commands", "settings"]
+}

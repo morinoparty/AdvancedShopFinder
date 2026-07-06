@@ -1,0 +1,85 @@
+---
+title: コマンド
+description: Advanced Shop Finder が提供するコマンドの一覧と使い方
+---
+
+## コマンドエイリアス
+
+Advanced Shop Finder のコマンドは、次のいずれのエイリアスでも呼び出せます（すべて同じ意味です）。
+
+- `advancedshopfinder`
+- `asf`
+- `shopfinder`
+- `sf`
+
+以降の説明では `sf` を使用します。
+
+## コマンド一覧
+
+| コマンド | 説明 | 権限 |
+| --- | --- | --- |
+| `sf search <item> [-p <profile>]` | 指定したアイテムをショップから検索します。`<item>` には Material を複数指定できます。 | なし |
+| `sf search-book <enchantment> [-p <profile>]` | 指定したエンチャントのエンチャント本を検索します。 | なし |
+| `sf fuzzy-search <name> [-p <profile>]` | 名前であいまい検索します（プレイヤーの言語ロケールを使用します）。 | なし |
+| `sf setting` | 現在使用中のプロファイルの検索設定 GUI を開きます。 | なし |
+| `sf setting <profile>` | 指定したプロファイルの設定 GUI を開きます（存在しない場合は作成します）。 | なし |
+| `sf setting list` | すべてのプロファイルを一覧表示します（使用中のものには「使用中」と表示されます）。 | なし |
+| `sf setting use <profile>` | 使用中のプロファイルを切り替えます。 | なし |
+| `sf setting delete <profile>` | プロファイルを削除します（`default` は削除できません）。 | なし |
+| `sf help` | ヘルプ（ドキュメントへのリンク）を表示します。 | なし |
+| `sf reload` | コンフィグを再読み込みします。 | `advancedshopfinder.admin` |
+
+`sf setting` 系のコマンドはプレイヤー専用です（コンソールからは実行できません）。
+
+## 各コマンドの詳細
+
+### `sf search <item>`
+
+指定したアイテムを販売・買取しているショップを検索します。`<item>` は Material 名で指定し、配列パーサに対応しているため複数のアイテムをまとめて指定できます。
+
+`-p <profile>`（または `--profile <profile>`）を付けると、そのプロファイルの設定で検索できます。例: `sf search diamond -p mining`
+
+### `sf search-book <enchantment>`
+
+指定したエンチャントが付与されたエンチャント本を扱うショップを検索します。
+
+`search` と同様に `-p <profile>` / `--profile <profile>` でプロファイルを指定できます。
+
+### `sf fuzzy-search <name>`
+
+アイテム名の一部などをキーワードにあいまい検索します。検索にはプレイヤーの言語ロケールが使用されます。
+
+`search` と同様に `-p <profile>` / `--profile <profile>` でプロファイルを指定できます。例: `sf fuzzy-search dia --profile mining`
+
+### プロファイルフラグ `-p` / `--profile` について
+
+3 つの検索コマンド（`search` / `search-book` / `fuzzy-search`）は、いずれもオプションで `-p <profile>` または `--profile <profile>` を受け付けます。
+
+- フラグを付けない場合は、現在使用中のプロファイル（未設定ならデフォルト値）が使用されます。
+- 指定したプロファイルが存在しない場合は `プロファイル '<name>' が見つかりません` とエラーを表示し、検索は実行されません。
+
+プロファイルの作成・切り替え・編集は `sf setting`（GUI）で行います。
+
+### `sf setting`
+
+検索プロファイル（並び順や取得件数などの検索オプションのセット）を GUI で管理します。
+
+- `sf setting` — 現在使用中のプロファイルの検索設定 GUI を開きます。
+- `sf setting <profile>` — 指定したプロファイルの GUI を開きます。存在しない場合は新規作成します。
+- `sf setting list` — すべてのプロファイルを一覧表示します。使用中のプロファイルには「使用中」と表示されます。
+- `sf setting use <profile>` — 使用中のプロファイルを切り替えます。
+- `sf setting delete <profile>` — プロファイルを削除します。`default` は削除できません。使用中のプロファイルを削除した場合は、使用中プロファイルが `default` に戻ります。
+
+これらのコマンドはプレイヤー専用で、追加の権限は不要です。GUI の詳しい操作方法は[検索プロファイル設定](/ja/docs/player/settings)を参照してください。
+
+### `sf help`
+
+プラグインのドキュメントへのリンクを表示します。
+
+### `sf reload`
+
+`config.json` を再読み込みします。実行には `advancedshopfinder.admin` 権限が必要です。
+
+:::note
+検索の並び順や取得件数などのオプションは、検索ごとに `-p <profile>` フラグで切り替えられます。プロファイルの作成・切り替え・編集は `/sf setting`（GUI）で行います。詳しくは[検索プロファイル設定](/ja/docs/player/settings)、およびオプションの内部形式については[検索オプション](/ja/docs/developer/find-options)を参照してください。
+:::

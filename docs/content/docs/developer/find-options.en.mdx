@@ -1,0 +1,91 @@
+---
+title: Search options
+description: Per-player profiles that control how searches behave
+---
+
+## Overview
+
+Search options (profiles) let each player individually configure how searches behave — sort order, result limits, stock visibility, and more. This gives users results tailored to their preferences and improves the overall experience. The settings are stored as JSON.
+
+Each player's settings are saved at the following location, which is generated automatically the first time they are used.
+
+```text
+plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
+```
+
+## Editing in-game
+
+The profiles described on this page can be edited and selected from within the game, without touching the file directly.
+
+- Run `/sf setting` to open a GUI (a chest inventory) where you can adjust sort order, result limits, stock visibility, and more. Saving writes the changes back to `config.json`.
+- Pass `-p <profile>` / `--profile <profile>` to a search command to apply that profile just for that search (for example, `sf search diamond -p mining`).
+
+See [Search profile settings](/en/docs/player/settings) for the full controls. The sections below describe the structure of the JSON file that these actions read and write.
+
+## File structure
+
+The top level is `PlayerFindOption`, which has the following fields.
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `setting` | String | `"default"` | Name of the profile currently in use. |
+| `findOptions` | Map&lt;String, FindOption&gt; | Contains `"default"` | Map of profile name to settings. |
+
+Each profile is a `FindOption` with the following fields.
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `version` | Int | `1` | Version of the settings format. |
+| `limitAmountOption.buyFindLimit` | Int | `-1` | Result limit for buying shops (`-1` means unlimited). |
+| `limitAmountOption.sellFindLimit` | Int | `-1` | Result limit for selling shops (`-1` means unlimited). |
+| `sortOption.buySortType` | SortType | `DESC_PRICE_PER_ITEM` | Sort order for buying shops. |
+| `sortOption.sellSortType` | SortType | `ASC_PRICE_PER_ITEM` | Sort order for selling shops. |
+| `showNoStockShop` | Boolean | `false` | Whether to show out-of-stock shops. |
+| `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | Whether to show buying shops whose owner lacks enough money. |
+
+## Example
+
+```json title="playerdata/<uuid>/config.json"
+{
+  "setting": "default",
+  "findOptions": {
+    "default": {
+      "version": 1,
+      "limitAmountOption": {
+        "buyFindLimit": -1,
+        "sellFindLimit": -1
+      },
+      "sortOption": {
+        "buySortType": "DESC_PRICE_PER_ITEM",
+        "sellSortType": "ASC_PRICE_PER_ITEM"
+      },
+      "showNoStockShop": false,
+      "showOwnerNotHasEnoughMoneyShop": false
+    }
+  }
+}
+```
+
+## SortType values
+
+`sortOption.buySortType` and `sortOption.sellSortType` accept one of the following values.
+
+| Value | Description |
+| --- | --- |
+| `ASC_PRICE_PER_STACK` | Cheapest price per stack first |
+| `DESC_PRICE_PER_STACK` | Highest price per stack first |
+| `ASC_PRICE_PER_ITEM` | Cheapest price per item first |
+| `DESC_PRICE_PER_ITEM` | Highest price per item first |
+| `ASC_DISTANCE` | Nearest distance first |
+| `DESC_DISTANCE` | Farthest distance first |
+| `ASC_DISTANCE_NEAREST` | Closest first |
+| `DESC_DISTANCE_NEAREST` | Furthest first |
+
+:::note
+If the profile selected in `setting` does not exist in `findOptions`, no search options are applied for that player. Make sure the profile name matches a key in `findOptions`.
+:::
+
+<Cards>
+  <Card title="Commands" href="/en/docs/player/commands" description="List of commands used for searching" />
+  <Card title="Configuration" href="/en/docs/administrator/config" description="Server-wide settings" />
+</Cards>

@@ -1,0 +1,43 @@
+---
+title: 言語ファイルの更新
+description: アイテム・ブロック・エンチャントの翻訳ファイルを生成・読み込みする仕組み
+---
+
+Advanced Shop Finder は、アイテム名・ブロック名・エンチャント名の翻訳データを言語ごとの JSON ファイルとして同梱しています。これらのファイルは Gradle タスクによって Minecraft の公式言語データから生成されます。
+
+## 翻訳ファイルの生成
+
+翻訳ファイルを生成・更新するには、次の Gradle タスクを実行します。
+
+```bash
+./gradlew generateTranslate
+```
+
+このタスク（`GenerateTranslateTask`）は以下の処理を行います。
+
+1. Mojang の [version manifest](https://piston-meta.mojang.com/mc/game/version_manifest_v2.json) から、最新のリリースバージョンを取得する。
+2. [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets) から、そのバージョンで利用可能な言語一覧（`_list.json`）を取得する。
+3. 各言語の言語 JSON をダウンロードし、`item.minecraft` / `block.minecraft` / `enchantment.minecraft` で始まるキーのみを抽出する。
+4. 値に含まれる空白を `_` に置換し、`src/main/resources/minecraft/<lang>.json` として書き出す。
+
+:::note
+コマンド解析時に空白で文字列が分割されてしまうため、翻訳値に含まれる空白は `_` で結合されています。
+:::
+
+## 実行時の読み込み
+
+翻訳データの読み込みは `TranslateManagerImpl` が担当します。
+
+- プラグイン起動時に `en_us` と `ja_jp` をプリロードします。
+- その他の言語は、要求されたタイミングで `minecraft/<locale>.json` リソースから遅延ロードされます。
+- 同梱されていないロケールが要求された場合は `IllegalArgumentException` がスローされます。
+- ロケール名はすべて小文字で扱われます（例: `ja_jp`、`ko_kr`）。
+
+:::info
+利用可能な言語は、JAR 内の `minecraft/` ディレクトリに含まれる JSON ファイルによって決まります。新しい言語を追加したい場合は `generateTranslate` を再実行してビルドし直してください。
+:::
+
+<Cards>
+  <Card title="コンフィグ" href="/ja/docs/administrator/config" description="表示フォーマットなどサーバー設定" />
+  <Card title="検索オプション" href="/ja/docs/developer/find-options" description="プレイヤーごとの検索設定" />
+</Cards>

@@ -1,41 +1,27 @@
-# Website
+# Advanced Shop Finder Documentation
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+[Fumadocs](https://fumadocs.dev) (Next.js) 製のドキュメントサイトです。日本語 (`ja`, デフォルト) と英語 (`en`) のバイリンガル構成です。
 
-### Installation
+## 開発
 
-```
-$ yarn
-```
-
-### Local Development
-
-```
-$ yarn start
+```bash
+pnpm install
+pnpm dev
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+`http://localhost:3000` を開くと `/ja/docs` へリダイレクトされます。
 
-### Build
+## ビルド
 
-```
-$ yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
+```bash
+pnpm build
 ```
 
-Not using SSH:
+静的サイトが `out/` に出力されます (`output: "export"`)。`scripts/postbuild.mjs` が検索インデックスの配置とルートリダイレクト (`/` → `/ja/docs/`) を生成します。
 
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
+## コンテンツ
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+- `content/docs/**` … MDX ドキュメント本体
+  - `*.mdx` … 日本語 (デフォルト)
+  - `*.en.mdx` … 英語
+  - `meta.json` / `meta.en.json` … サイドバーの並び・カテゴリ

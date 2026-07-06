@@ -1,0 +1,43 @@
+---
+title: Updating language files
+description: How item, block, and enchantment translation files are generated and loaded
+---
+
+Advanced Shop Finder bundles translation data for item, block, and enchantment names as per-language JSON files. These files are generated from Minecraft's official language data by a Gradle task.
+
+## Generating the translation files
+
+To generate or update the translation files, run the following Gradle task.
+
+```bash
+./gradlew generateTranslate
+```
+
+This task (`GenerateTranslateTask`) performs the following steps.
+
+1. Fetch the latest release version from Mojang's [version manifest](https://piston-meta.mojang.com/mc/game/version_manifest_v2.json).
+2. Retrieve the list of available languages (`_list.json`) for that version from [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets).
+3. Download each language's JSON and keep only the keys that start with `item.minecraft`, `block.minecraft`, or `enchantment.minecraft`.
+4. Replace any whitespace in the values with `_`, and write the result to `src/main/resources/minecraft/<lang>.json`.
+
+:::note
+Because strings are split on whitespace during command parsing, whitespace in translation values is joined with `_`.
+:::
+
+## Loading at runtime
+
+Loading of translation data is handled by `TranslateManagerImpl`.
+
+- `en_us` and `ja_jp` are preloaded when the plugin starts.
+- Other languages are lazily loaded from the `minecraft/<locale>.json` resource the first time they are requested.
+- Requesting a locale that is not bundled throws an `IllegalArgumentException`.
+- Locale names are handled in lowercase (e.g. `ja_jp`, `ko_kr`).
+
+:::info
+The available languages are determined by the JSON files present in the `minecraft/` directory inside the JAR. To add a new language, re-run `generateTranslate` and rebuild.
+:::
+
+<Cards>
+  <Card title="Configuration" href="/en/docs/administrator/config" description="Server-side settings such as the display format" />
+  <Card title="Search options" href="/en/docs/developer/find-options" description="Per-player search settings" />
+</Cards>
