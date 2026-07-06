@@ -1,3 +1,12 @@
 {
-	"pages": ["index", "player", "administrator", "developer"]
+	"title": "Advanced Shop Finder",
+	"pages": [
+		"index",
+		"---使い方---",
+		"...usage",
+		"---設定---",
+		"...config",
+		"---開発者向け---",
+		"...developer"
+	]
 }

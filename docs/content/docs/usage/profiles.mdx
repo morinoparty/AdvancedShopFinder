@@ -11,7 +11,7 @@ description: 検索の挙動をプロファイルとして管理し、GUI やコ
 - 現在「使用中」のプロファイルが、通常の検索で自動的に適用されます。
 - 個別の検索では `-p <プロファイル名>` フラグで一時的に別のプロファイルを指定できます（使用中のプロファイルは変更されません）。
 
-プロファイルの実体はプレイヤーごとに次の場所へ JSON として保存されます。各フィールドの詳細は[検索オプション](/ja/docs/developer/find-options)を参照してください。
+プロファイルの実体はプレイヤーごとに次の場所へ JSON として保存されます。各フィールドの詳細は[検索オプション](/ja/docs/config/find-options)を参照してください。
 
 ```text
 plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
@@ -34,7 +34,7 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
 | 閉じる | 保存せず閉じる |
 
 :::note
-取得件数の「無制限」は内部値 `-1` に対応します。並び順の値は SortType で表され、指定できる値の一覧は[検索オプション](/ja/docs/developer/find-options)にまとめられています。
+取得件数の「無制限」は内部値 `-1` に対応します。並び順の値は SortType で表され、指定できる値の一覧は[検索オプション](/ja/docs/config/find-options)にまとめられています。
 :::
 
 :::warning
@@ -67,6 +67,6 @@ sf fuzzy-search dia --profile mining
 :::
 
 <Cards>
-  <Card title="コマンド" href="/ja/docs/player/commands" description="検索やプロファイル管理に使うコマンド一覧" />
-  <Card title="検索オプション" href="/ja/docs/developer/find-options" description="プロファイルの JSON 構造と SortType の一覧" />
+  <Card title="コマンド" href="/ja/docs/usage/commands" description="検索やプロファイル管理に使うコマンド一覧" />
+  <Card title="検索オプション" href="/ja/docs/config/find-options" description="プロファイルの JSON 構造と SortType の一覧" />
 </Cards>

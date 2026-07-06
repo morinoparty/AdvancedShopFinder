@@ -11,7 +11,7 @@ A search profile is a named set of options that control how a search behaves —
 - The profile that is currently "active" is applied automatically to normal searches.
 - For an individual search you can temporarily use a different profile with the `-p <profile>` flag (this does not change your active profile).
 
-Each profile is stored as JSON per player at the following location. See [Search options](/en/docs/developer/find-options) for details on every field.
+Each profile is stored as JSON per player at the following location. See [Search options](/en/docs/config/find-options) for details on every field.
 
 ```text
 plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
@@ -34,7 +34,7 @@ Running `/sf setting` opens the settings GUI (a chest inventory) for your curren
 | Close | Close without saving |
 
 :::note
-"Unlimited" for a result limit corresponds to the internal value `-1`. Sort order values are represented by SortType; the full list of accepted values is documented in [Search options](/en/docs/developer/find-options).
+"Unlimited" for a result limit corresponds to the internal value `-1`. Sort order values are represented by SortType; the full list of accepted values is documented in [Search options](/en/docs/config/find-options).
 :::
 
 :::warning
@@ -67,6 +67,6 @@ If you specify a profile name that does not exist, the command shows the error `
 :::
 
 <Cards>
-  <Card title="Commands" href="/en/docs/player/commands" description="List of commands for searching and managing profiles" />
-  <Card title="Search options" href="/en/docs/developer/find-options" description="Profile JSON structure and the SortType list" />
+  <Card title="Commands" href="/en/docs/usage/commands" description="List of commands for searching and managing profiles" />
+  <Card title="Search options" href="/en/docs/config/find-options" description="Profile JSON structure and the SortType list" />
 </Cards>
