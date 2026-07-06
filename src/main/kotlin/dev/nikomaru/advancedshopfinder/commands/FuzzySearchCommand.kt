@@ -1,15 +1,15 @@
 package dev.nikomaru.advancedshopfinder.commands
 
+import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import dev.nikomaru.advancedshopfinder.search.FuzzySearcher
 import dev.nikomaru.advancedshopfinder.search.Searcher
 import dev.nikomaru.advancedshopfinder.services.ShopListPresenter
-import dev.nikomaru.advancedshopfinder.utils.data.FindOption
-import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.getPlayerFindOption
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 import org.koin.core.component.KoinComponent
 import java.util.Locale
 
@@ -21,9 +21,10 @@ object FuzzySearchCommand : KoinComponent {
     suspend fun fuzzySearch(
         sender: CommandSender,
         @Argument("name") name: String,
+        @Flag(value = "profile", aliases = ["p"]) profile: String?,
     ) {
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
-        val playerFindOption = (sender as? Player)?.getPlayerFindOption() ?: FindOption()
+        val playerFindOption = resolveFindOption(sender, profile) ?: return
         val searcher: Searcher<Pair<String, Locale>> = FuzzySearcher()
         val header = MiniMessage.miniMessage().deserialize("<color:green>${name}をあいまい検索中")
         searcher

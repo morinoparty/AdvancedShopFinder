@@ -6,6 +6,7 @@ import dev.nikomaru.advancedshopfinder.commands.EnchantFindCommand
 import dev.nikomaru.advancedshopfinder.commands.FuzzySearchCommand
 import dev.nikomaru.advancedshopfinder.commands.HelpCommand
 import dev.nikomaru.advancedshopfinder.commands.ReloadCommand
+import dev.nikomaru.advancedshopfinder.commands.SettingCommand
 import dev.nikomaru.advancedshopfinder.commands.ShopSearchCommand
 import dev.nikomaru.advancedshopfinder.commands.utils.parser.EnchantmentParser
 import dev.nikomaru.advancedshopfinder.commands.utils.parser.MaterialArrayParser
@@ -79,6 +80,7 @@ open class AdvancedShopFinder : JavaPlugin() {
                 ReloadCommand,
                 ShopSearchCommand,
                 HelpCommand,
+                SettingCommand,
             )
         }
     }

@@ -10,6 +10,7 @@ protocolLib = "5.4.0"
 quickShop = "6.2.0.8"
 arrow = "2.0.1"
 koinVersion = "3.6.0-Beta5"
+inventoryFramework = "0.10.19"
 junit = "5.11.4"
 mockBukkit = "3.93.2"
 ktlint = "13.1.0"
@@ -30,6 +31,7 @@ quickshop-bukkit = { group = "com.ghostchu", name = "quickshop-bukkit", version.
 quickshop-api = { group = "com.ghostchu", name = "quickshop-api", version.ref = "quickShop" }
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koinVersion" }
 koin-core = { group = "io.insert-koin", name = "koin-core" }
+inventoryframework = { group = "com.github.stefvanschie.inventoryframework", name = "IF", version.ref = "inventoryFramework" }
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }

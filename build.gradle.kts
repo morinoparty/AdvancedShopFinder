@@ -50,6 +50,8 @@ dependencies {
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
 
+    implementation(libs.inventoryframework)
+
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mock.bukkit)
@@ -86,6 +88,13 @@ tasks {
     }
     build {
         dependsOn(shadowJar)
+    }
+    shadowJar {
+        // InventoryFramework は各プラグインへシェードして使うため、衝突回避に再配置する
+        relocate(
+            "com.github.stefvanschie.inventoryframework",
+            "dev.nikomaru.advancedshopfinder.libs.inventoryframework",
+        )
     }
     runServer {
         minecraftVersion("1.21.8")
