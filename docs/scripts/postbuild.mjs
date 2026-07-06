@@ -34,12 +34,12 @@ const redirectHtml = `<!doctype html>
 <html lang="ja">
 	<head>
 		<meta charset="utf-8" />
-		<meta http-equiv="refresh" content="0; url=./ja/docs/" />
+		<meta http-equiv="refresh" content="0; url=./ja/docs/index.html" />
 		<link rel="canonical" href="./ja/docs/" />
 		<title>Advanced Shop Finder Documentation</title>
 	</head>
 	<body>
-		<p><a href="./ja/docs/">Advanced Shop Finder のドキュメントへ移動 / Go to the documentation</a></p>
+		<p><a href="./ja/docs/index.html">Advanced Shop Finder のドキュメントへ移動 / Go to the documentation</a></p>
 	</body>
 </html>
 `;
