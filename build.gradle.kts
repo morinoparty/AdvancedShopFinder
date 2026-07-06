@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.run.paper)
     alias(libs.plugins.resource.factory)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 group = "dev.nikomaru"
@@ -56,15 +57,19 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mock.bukkit)
 
+    testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.bundles.koin.test)
 }
 
 kotlin {
-    jvmToolchain {
-        (this).languageVersion.set(JavaLanguageVersion.of(23))
-    }
-    jvmToolchain(23)
+    jvmToolchain(25)
+}
+
+detekt {
+    // 既存コードのスタイル差異でビルドを止めないため、検出のみ行う
+    ignoreFailures = true
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
@@ -79,12 +84,12 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 
 tasks {
     compileKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_23)
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
         compilerOptions.javaParameters = true
-        compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_0)
+        compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_2)
     }
     compileTestKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_23)
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
     }
     build {
         dependsOn(shadowJar)
@@ -97,9 +102,9 @@ tasks {
         )
     }
     runServer {
-        minecraftVersion("1.21.8")
+        minecraftVersion("1.21.10")
         downloadPlugins {
-            modrinth("quickshop-hikari", "6.2.0.10")
+            modrinth("quickshop-hikari", "6.2.0.11")
             github("dmulloy2", "ProtocolLib", "5.4.0", "ProtocolLib.jar")
             github("EssentialsX", "Essentials", "2.21.2", "EssentialsX-2.21.2.jar")
             github("Milkbowl", "Vault", "1.7.3", "Vault.jar")

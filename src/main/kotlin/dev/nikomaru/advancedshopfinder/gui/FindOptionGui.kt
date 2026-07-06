@@ -4,6 +4,7 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui
 import com.github.stefvanschie.inventoryframework.pane.StaticPane
+import com.github.stefvanschie.inventoryframework.pane.util.Slot
 import dev.nikomaru.advancedshopfinder.AdvancedShopFinder
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
 import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.setActiveProfile
@@ -33,7 +34,7 @@ class FindOptionGui(
     private var option: FindOption = initial
 
     private val gui = ChestGui(6, "検索設定: $profileName")
-    private val pane = StaticPane(0, 0, 9, 6)
+    private val pane = StaticPane(9, 6)
 
     private val buySortItem = GuiItem(ItemStack(Material.GOLD_INGOT)) { event ->
         event.isCancelled = true
@@ -103,7 +104,7 @@ class FindOptionGui(
         pane.addItem(activeItem, 7, 1)
         pane.addItem(saveItem, 3, 5)
         pane.addItem(closeItem, 5, 5)
-        gui.addPane(pane)
+        gui.addPane(Slot.fromXY(0, 0), pane)
         redraw()
     }
 

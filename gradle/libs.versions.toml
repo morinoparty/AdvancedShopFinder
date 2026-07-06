@@ -1,19 +1,21 @@
 [versions]
-paper = "1.21.4-R0.1-SNAPSHOT"
-mccoroutine = "2.20.0"
-cloud = "2.1.0-SNAPSHOT"
-cloudPaper = "2.0.0-SNAPSHOT"
-coroutine = "1.10.1"
-serialization = "1.8.0"
+paper = "1.21.10-R0.1-SNAPSHOT"
+mccoroutine = "2.22.0"
+cloud = "2.0.0"
+cloudPaper = "2.0.0-beta.17"
+coroutine = "1.11.0"
+serialization = "1.11.0"
 vault = "1.7.1"
 protocolLib = "5.4.0"
-quickShop = "6.2.0.8"
-arrow = "2.0.1"
-koinVersion = "3.6.0-Beta5"
-inventoryFramework = "0.10.19"
-junit = "5.11.4"
-mockBukkit = "3.93.2"
-ktlint = "13.1.0"
+quickShop = "6.2.0.11"
+arrow = "2.2.3"
+koinVersion = "4.2.2"
+inventoryFramework = "0.12.0"
+junit = "6.1.1"
+mockBukkit = "4.110.0"
+ktlint = "14.2.0"
+detekt = "2.0.0-alpha.5"
+kotlin = "2.3.21"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
@@ -35,20 +37,22 @@ inventoryframework = { group = "com.github.stefvanschie.inventoryframework", nam
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutine" }
-mock-bukkit = { group = "com.github.seeseemelk", name = "MockBukkit-v1.20", version.ref = "mockBukkit" }
+mock-bukkit = { group = "org.mockbukkit.mockbukkit", name = "mockbukkit-v1.21", version.ref = "mockBukkit" }
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 koin-test = { group = "io.insert-koin", name = "koin-test" }
 koin-test-junit5 = { group = "io.insert-koin", name = "koin-test-junit5" }
 
 [plugins]
-run-paper = { id = "xyz.jpenilla.run-paper", version = "2.3.1" }
-resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.2.0" }
-shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.20-Beta2" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.1.20-Beta2" }
-dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
+run-paper = { id = "xyz.jpenilla.run-paper", version = "3.0.2" }
+resource-factory = { id = "xyz.jpenilla.resource-factory", version = "1.3.1" }
+shadow = { id = "com.gradleup.shadow", version = "9.5.1" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
-
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 
 [bundles]
 commands = ["cloud", "cloudPaper", "cloud-annotations", "cloud-kotlin-coroutines-annotations"]
