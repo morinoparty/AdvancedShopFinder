@@ -27,8 +27,8 @@ class PlayerFindOptionSerializationTest {
                                 limitAmountOption = LimitAmountOption(buyFindLimit = 5, sellFindLimit = 10),
                                 sortOption =
                                     SortOption(
-                                        buySortType = SortType.ASC_DISTANCE,
-                                        sellSortType = SortType.DESC_DISTANCE_NEAREST,
+                                        buySortTypes = listOf(SortType.ASC_DISTANCE, SortType.DESC_PRICE_PER_ITEM),
+                                        sellSortTypes = listOf(SortType.DESC_DISTANCE_NEAREST),
                                     ),
                                 showNoStockShop = true,
                             ),
@@ -41,7 +41,10 @@ class PlayerFindOptionSerializationTest {
         assertEquals(original, decoded)
         assertEquals("mining", decoded.setting)
         assertEquals(2, decoded.findOptions.size)
-        assertEquals(SortType.ASC_DISTANCE, decoded.findOptions["mining"]!!.sortOption.buySortType)
+        assertEquals(
+            listOf(SortType.ASC_DISTANCE, SortType.DESC_PRICE_PER_ITEM),
+            decoded.findOptions["mining"]!!.sortOption.buySortTypes,
+        )
         assertEquals(5, decoded.findOptions["mining"]!!.limitAmountOption.buyFindLimit)
     }
 }

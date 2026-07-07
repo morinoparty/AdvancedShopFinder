@@ -38,8 +38,8 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
 | `version` | Int | `1` | 設定フォーマットのバージョン。 |
 | `limitAmountOption.buyFindLimit` | Int | `-1` | 買取ショップの検索結果上限（`-1` は無制限）。 |
 | `limitAmountOption.sellFindLimit` | Int | `-1` | 販売ショップの検索結果上限（`-1` は無制限）。 |
-| `sortOption.buySortType` | SortType | `DESC_PRICE_PER_ITEM` | 買取ショップの並び順。 |
-| `sortOption.sellSortType` | SortType | `ASC_PRICE_PER_ITEM` | 販売ショップの並び順。 |
+| `sortOption.buySortTypes` | SortType[] | `["DESC_PRICE_PER_ITEM"]` | 買取ショップの並び順（優先順位リスト。先頭が第一基準）。 |
+| `sortOption.sellSortTypes` | SortType[] | `["ASC_PRICE_PER_ITEM"]` | 販売ショップの並び順（優先順位リスト。先頭が第一基準）。 |
 | `showNoStockShop` | Boolean | `false` | 在庫切れショップを表示するか。 |
 | `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | オーナーの所持金が不足している買取ショップを表示するか。 |
 
@@ -56,8 +56,8 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
         "sellFindLimit": -1
       },
       "sortOption": {
-        "buySortType": "DESC_PRICE_PER_ITEM",
-        "sellSortType": "ASC_PRICE_PER_ITEM"
+        "buySortTypes": ["DESC_PRICE_PER_ITEM"],
+        "sellSortTypes": ["ASC_PRICE_PER_ITEM"]
       },
       "showNoStockShop": false,
       "showOwnerNotHasEnoughMoneyShop": false
@@ -68,7 +68,7 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
 
 ## SortType 一覧
 
-`sortOption.buySortType` および `sortOption.sellSortType` には、次のいずれかの値を指定できます。
+`buySortTypes` / `sellSortTypes` の各要素には次のいずれかの値を指定できます。**リストは優先順位順**で、先頭が第一ソート基準、値が同じショップ同士は次の要素で比較されます（多段ソート）。
 
 | 値 | 説明 |
 | --- | --- |
@@ -78,8 +78,12 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
 | `DESC_PRICE_PER_ITEM` | アイテム当たりの金額が高い順 |
 | `ASC_DISTANCE` | 距離が近い順 |
 | `DESC_DISTANCE` | 距離が遠い順 |
-| `ASC_DISTANCE_NEAREST` | 最も近い順 |
-| `DESC_DISTANCE_NEAREST` | 最も遠い順 |
+| `ASC_DISTANCE_NEAREST` | 最寄りの拠点が近い順 |
+| `DESC_DISTANCE_NEAREST` | 最寄りの拠点が遠い順 |
+
+:::tip 多段ソートの例
+`"sellSortTypes": ["ASC_DISTANCE", "ASC_PRICE_PER_ITEM"]` とすると、まず距離が近い順に並び、距離が同じショップはアイテム単価が安い順に並びます。GUI（`/sf setting`）では優先度スロットを Shift クリックで上下に並べ替えできます。
+:::
 
 :::note
 `setting` で選択したプロファイルが `findOptions` に存在しない場合、そのプレイヤーには検索オプションが適用されません。プロファイル名は `findOptions` のキーと一致させてください。

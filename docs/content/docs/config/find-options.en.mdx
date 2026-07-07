@@ -38,8 +38,8 @@ Each profile is a `FindOption` with the following fields.
 | `version` | Int | `1` | Version of the settings format. |
 | `limitAmountOption.buyFindLimit` | Int | `-1` | Result limit for buying shops (`-1` means unlimited). |
 | `limitAmountOption.sellFindLimit` | Int | `-1` | Result limit for selling shops (`-1` means unlimited). |
-| `sortOption.buySortType` | SortType | `DESC_PRICE_PER_ITEM` | Sort order for buying shops. |
-| `sortOption.sellSortType` | SortType | `ASC_PRICE_PER_ITEM` | Sort order for selling shops. |
+| `sortOption.buySortTypes` | SortType[] | `["DESC_PRICE_PER_ITEM"]` | Sort order for buying shops (priority list; the first entry is the primary key). |
+| `sortOption.sellSortTypes` | SortType[] | `["ASC_PRICE_PER_ITEM"]` | Sort order for selling shops (priority list; the first entry is the primary key). |
 | `showNoStockShop` | Boolean | `false` | Whether to show out-of-stock shops. |
 | `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | Whether to show buying shops whose owner lacks enough money. |
 
@@ -56,8 +56,8 @@ Each profile is a `FindOption` with the following fields.
         "sellFindLimit": -1
       },
       "sortOption": {
-        "buySortType": "DESC_PRICE_PER_ITEM",
-        "sellSortType": "ASC_PRICE_PER_ITEM"
+        "buySortTypes": ["DESC_PRICE_PER_ITEM"],
+        "sellSortTypes": ["ASC_PRICE_PER_ITEM"]
       },
       "showNoStockShop": false,
       "showOwnerNotHasEnoughMoneyShop": false
@@ -68,7 +68,7 @@ Each profile is a `FindOption` with the following fields.
 
 ## SortType values
 
-`sortOption.buySortType` and `sortOption.sellSortType` accept one of the following values.
+Each element of `buySortTypes` / `sellSortTypes` accepts one of the following values. **The list is an ordered priority**: the first element is the primary sort key, and ties are broken by the next element (multi-level sort).
 
 | Value | Description |
 | --- | --- |
@@ -78,8 +78,12 @@ Each profile is a `FindOption` with the following fields.
 | `DESC_PRICE_PER_ITEM` | Highest price per item first |
 | `ASC_DISTANCE` | Nearest distance first |
 | `DESC_DISTANCE` | Farthest distance first |
-| `ASC_DISTANCE_NEAREST` | Closest first |
-| `DESC_DISTANCE_NEAREST` | Furthest first |
+| `ASC_DISTANCE_NEAREST` | Nearest landmark first |
+| `DESC_DISTANCE_NEAREST` | Farthest landmark first |
+
+:::tip Multi-level sort example
+`"sellSortTypes": ["ASC_DISTANCE", "ASC_PRICE_PER_ITEM"]` sorts by nearest distance first, and breaks ties (same distance) by cheapest price per item. In the GUI (`/sf setting`), shift-click a priority slot to move it up or down.
+:::
 
 :::note
 If the profile selected in `setting` does not exist in `findOptions`, no search options are applied for that player. Make sure the profile name matches a key in `findOptions`.
