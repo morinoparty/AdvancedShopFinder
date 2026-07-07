@@ -4,7 +4,7 @@ import { source } from "@/lib/source";
 
 export const revalidate = false;
 
-// 日本語は Orama の標準トークナイザに対応していないため、専用トークナイザを使う。
+// 日本語は Orama 標準トークナイザ非対応のため、専用トークナイザで索引を作る。
 export const { staticGET: GET } = createFromSource(source, {
 	localeMap: {
 		ja: {

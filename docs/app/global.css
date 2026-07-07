@@ -33,12 +33,3 @@ h1, h2, h3, h4, h5, h6 {
         color: var(--mpc-colors-mori-dark-12);
     }
 }
-
-/* サイドバーの GitHub / Modrinth アイコンを囲む枠線・背景・余白を除去し、
-   アイコンだけを素朴に並べる（fumadocs 既定のピル状の枠を無効化） */
-.border.bg-fd-secondary\/50.p-0\.5.rounded-lg {
-    border: none;
-    background-color: transparent;
-    padding: 0;
-}
-

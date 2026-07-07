@@ -1,8 +1,9 @@
 import type { MDXComponents } from "mdx/types";
 import defaultComponents from "fumadocs-ui/mdx";
-import { Mermaid } from "./components/mdx/mermaid";
+import { Mermaid } from "./components/mdx/mermaind";
 
-const customComponents = {};
+const customComponents = {
+};
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
     return {

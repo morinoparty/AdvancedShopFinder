@@ -9,9 +9,9 @@
     --color-fd-muted-foreground: var(--mpc-colors-color-palette-fg-muted);
     --color-fd-secondary-foreground: var(--mpc-colors-color-palette-fg-subtle);
 
-    /* Accent colors — アクティブなナビゲーション項目やボタンに mori グリーンを使う */
-    --color-fd-primary: var(--mpc-colors-color-palette-solid);
-    --color-fd-primary-foreground: var(--mpc-colors-color-palette-contrast);
+    /* Accent colors */
+    --color-fd-primary: var(--mpc-colors-color-palette-fg);
+    --color-fd-primary-foreground: var(--mpc-colors-color-palette-fg-subtle);
 
     /* Card */
     --color-fd-card: var(--mpc-colors-color-palette-bg-subtle);

@@ -1,7 +1,7 @@
-import { RootProvider } from "fumadocs-ui/provider/next";
 import { defineI18nUI } from "fumadocs-ui/i18n";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Provider } from "@/components/provider";
 import { i18n } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -14,13 +14,9 @@ export const metadata: Metadata = {
 };
 
 const { provider } = defineI18nUI(i18n, {
-	ja: {
-		displayName: "日本語",
-		search: "検索",
-	},
-	en: {
-		displayName: "English",
-		search: "Search",
+	translations: {
+		ja: { displayName: "日本語", search: "検索" },
+		en: { displayName: "English", search: "Search" },
 	},
 });
 
@@ -54,18 +50,7 @@ export default async function Layout({
 				/>
 			</head>
 			<body className="flex flex-col min-h-screen">
-				<RootProvider
-					i18n={provider(lang)}
-					// ライトテーマのみを強制し、ダークモードへの切り替えを無効化する
-					theme={{ forcedTheme: "light" }}
-					search={{
-						options: {
-							type: "static",
-						},
-					}}
-				>
-					{children}
-				</RootProvider>
+				<Provider i18n={provider(lang)}>{children}</Provider>
 			</body>
 		</html>
 	);
