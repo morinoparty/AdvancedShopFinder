@@ -1,0 +1,72 @@
+---
+title: Search profile settings
+description: Manage search behavior as profiles and switch between them via a GUI or commands
+---
+
+## What is a search profile
+
+A search profile is a named set of options that control how a search behaves — sort order, result limits, stock visibility, and more. You can create several profiles and switch between them depending on what you are doing.
+
+- Each player can have multiple profiles. A `default` profile is available from the start.
+- The profile that is currently "active" is applied automatically to normal searches.
+- For an individual search you can temporarily use a different profile with the `-p <profile>` flag (this does not change your active profile).
+
+Each profile is stored as JSON per player at the following location. See [Search options](/en/docs/config/find-options) for details on every field.
+
+```text
+plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
+```
+
+## Settings GUI
+
+Running `/sf setting` opens the settings GUI (a chest inventory) for your currently active profile. Each control is shown as an item that you click to operate.
+
+| Control | Action |
+| --- | --- |
+| Buy-shop sort order (priority list) | Per slot: left = change type / right = remove / shift-left = move up / shift-right = move down. Green "+" adds a criterion |
+| Sell-shop sort order (priority list) | Same. The leftmost is the primary key; ties are broken by the next criterion (multi-level sort) |
+| Buy-shop result limit (buyFindLimit) | Left-click +1 / right-click −1 / Shift-click for unlimited |
+| Sell-shop result limit (sellFindLimit) | Left-click +1 / right-click −1 / Shift-click for unlimited |
+| Show out-of-stock shops (showNoStockShop) | Click to toggle ON / OFF |
+| Show shops where owner lacks funds (showOwnerNotHasEnoughMoneyShop) | Click to toggle ON / OFF |
+| Set this profile as active | Click to make this profile the active one |
+| Save | Save changes and close |
+| Close | Close without saving |
+
+:::note
+"Unlimited" for a result limit corresponds to the internal value `-1`. Sort order values are represented by SortType; the full list of accepted values is documented in [Search options](/en/docs/config/find-options).
+:::
+
+:::warning
+If you close the GUI with "Close", your changes are not saved. Always click "Save" to apply your settings.
+:::
+
+## `sf setting` commands
+
+Players can manage their own profiles entirely on their own (no permission required).
+
+| Command | Description |
+| --- | --- |
+| `sf setting` | Opens the settings GUI for your currently active profile. |
+| `sf setting <profile>` | Opens the settings GUI for `<profile>`, creating it if it does not exist. |
+| `sf setting list` | Lists all profiles. The active profile is marked as "(active)". |
+| `sf setting use <profile>` | Switches your active profile. |
+| `sf setting delete <profile>` | Deletes a profile. `default` cannot be deleted. If you delete the active profile, it reverts to `default`. |
+
+## Switching per search with the `-p` flag
+
+The search commands `sf search` / `sf search-book` / `sf fuzzy-search` accept a `--profile <name>` flag, or its short form `-p <name>`. They run only that search with the specified profile's settings and do not change your active profile.
+
+```text
+sf search diamond -p mining
+sf fuzzy-search dia --profile mining
+```
+
+:::warning
+If you specify a profile name that does not exist, the command shows the error `プロファイル '<name>' が見つかりません` and the search does not run.
+:::
+
+<Cards>
+  <Card title="Commands" href="/en/docs/usage/commands" description="List of commands for searching and managing profiles" />
+  <Card title="Search options" href="/en/docs/config/find-options" description="Profile JSON structure and the SortType list" />
+</Cards>

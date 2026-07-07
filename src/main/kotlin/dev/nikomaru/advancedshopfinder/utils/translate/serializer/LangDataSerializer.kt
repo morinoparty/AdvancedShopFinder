@@ -10,9 +10,8 @@ import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 object LangDataSerializer : JsonContentPolymorphicSerializer<Map<NamespacedKey, String>>(
-    Map::class as KClass<Map<NamespacedKey, String>>
+    Map::class as KClass<Map<NamespacedKey, String>>,
 ) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<out Map<NamespacedKey, String>> {
-        return MapSerializer(NamespacedKeySerializer, String.serializer())
-    }
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<out Map<NamespacedKey, String>> =
+        MapSerializer(NamespacedKeySerializer, String.serializer())
 }

@@ -17,30 +17,35 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.Locale
 
-class EnchantmentParser<CommandSender> : ArgumentParser<CommandSender, Enchantment>,
-    BlockingSuggestionProvider.Strings<CommandSender>, KoinComponent {
+class EnchantmentParser<CommandSender> :
+    ArgumentParser<CommandSender, Enchantment>,
+    BlockingSuggestionProvider.Strings<CommandSender>,
+    KoinComponent {
     val manager: TranslateManager by inject()
 
     companion object {
-        fun enchantmentParser(): ParserDescriptor<CommandSender, Enchantment> {
-            return ParserDescriptor.of(EnchantmentParser(), Enchantment::class.java)
-        }
+        fun enchantmentParser(): ParserDescriptor<CommandSender, Enchantment> =
+            ParserDescriptor.of(EnchantmentParser(), Enchantment::class.java)
     }
 
     override fun parse(
-        commandContext: CommandContext<CommandSender & Any>, commandInput: CommandInput
+        commandContext: CommandContext<CommandSender & Any>,
+        commandInput: CommandInput,
     ): ArgumentParseResult<Enchantment> {
-        val locale = if (commandContext.sender() is Player) {
-            (commandContext.sender() as Player).locale()
-        } else {
-            Locale.getDefault()
-        }
+        val locale =
+            if (commandContext.sender() is Player) {
+                (commandContext.sender() as Player).locale()
+            } else {
+                Locale.getDefault()
+            }
         val input = commandInput.readStringSkipWhitespace()
-        val enchantmentKey = getKeys(manager.getTranslateMap(locale), input)?.key?.replace("enchantment.minecraft.", "")
-            ?: input
-        val enchantment = RegistryAccess.registryAccess().getRegistry<Enchantment>(RegistryKey.ENCHANTMENT).get(
-            NamespacedKey.minecraft(enchantmentKey)
-        )
+        val enchantmentKey =
+            getKeys(manager.getTranslateMap(locale), input)?.key?.replace("enchantment.minecraft.", "")
+                ?: input
+        val enchantment =
+            RegistryAccess.registryAccess().getRegistry<Enchantment>(RegistryKey.ENCHANTMENT).get(
+                NamespacedKey.minecraft(enchantmentKey),
+            )
         return if (enchantment != null) {
             ArgumentParseResult.success(enchantment)
         } else {
@@ -53,19 +58,27 @@ class EnchantmentParser<CommandSender> : ArgumentParser<CommandSender, Enchantme
 
     // RegistryAccess.registryAccess().getRegistry<Enchantment>(RegistryKey.ENCHANTMENT).get()
     override fun stringSuggestions(
-        commandContext: CommandContext<CommandSender>, input: CommandInput
+        commandContext: CommandContext<CommandSender>,
+        input: CommandInput,
     ): MutableIterable<String> {
-        val locale = if (commandContext.sender() is Player) {
-            (commandContext.sender() as Player).locale()
-        } else {
-            Locale.getDefault()
-        }
-        return (enchantments + enchantments.mapNotNull {
-            manager.getTranslateMap(locale)[NamespacedKey.minecraft("enchantment.minecraft.$it")]
-        }).toMutableList()
+        val locale =
+            if (commandContext.sender() is Player) {
+                (commandContext.sender() as Player).locale()
+            } else {
+                Locale.getDefault()
+            }
+        return (
+            enchantments +
+                enchantments.mapNotNull {
+                    manager.getTranslateMap(locale)[NamespacedKey.minecraft("enchantment.minecraft.$it")]
+                }
+        ).toMutableList()
     }
 
-    private fun <K, V> getKeys(map: Map<K, V>, value: V): K? {
+    private fun <K, V> getKeys(
+        map: Map<K, V>,
+        value: V,
+    ): K? {
         for (key in map.keys) {
             if (value == map[key]) {
                 return key
@@ -73,5 +86,4 @@ class EnchantmentParser<CommandSender> : ArgumentParser<CommandSender, Enchantme
         }
         return null
     }
-
 }

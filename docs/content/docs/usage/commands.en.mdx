@@ -1,0 +1,85 @@
+---
+title: Commands
+description: List and usage of the commands provided by Advanced Shop Finder
+---
+
+## Command aliases
+
+Every Advanced Shop Finder command can be invoked with any of the following aliases (they are all equivalent):
+
+- `advancedshopfinder`
+- `asf`
+- `shopfinder`
+- `sf`
+
+The examples below use `sf`.
+
+## Command list
+
+| Command | Description | Permission |
+| --- | --- | --- |
+| `sf search <item> [-p <profile>]` | Search shops for the specified item. `<item>` accepts multiple Materials. | None |
+| `sf search-book <enchantment> [-p <profile>]` | Search for enchanted books with the specified enchantment. | None |
+| `sf fuzzy-search <name> [-p <profile>]` | Fuzzy-search by name (uses the player's language locale). | None |
+| `sf setting` | Open the search-settings GUI for the currently active profile. | None |
+| `sf setting <profile>` | Open the settings GUI for `<profile>` (creates it if it does not exist). | None |
+| `sf setting list` | List all profiles (the active one is marked "(active)"). | None |
+| `sf setting use <profile>` | Switch the active profile. | None |
+| `sf setting delete <profile>` | Delete a profile (`default` cannot be deleted). | None |
+| `sf help` | Show help (a link to the documentation). | None |
+| `sf reload` | Reload the configuration. | `advancedshopfinder.admin` |
+
+The `sf setting` commands are player-only (they cannot be run from the console).
+
+## Command details
+
+### `sf search <item>`
+
+Searches for shops that sell or buy the specified item. `<item>` is given as a Material name, and because it uses an array parser you can specify several items at once.
+
+Add `-p <profile>` (or `--profile <profile>`) to search using that profile's settings. Example: `sf search diamond -p mining`
+
+### `sf search-book <enchantment>`
+
+Searches for shops offering enchanted books carrying the specified enchantment.
+
+Like `search`, it accepts `-p <profile>` / `--profile <profile>` to pick a profile.
+
+### `sf fuzzy-search <name>`
+
+Performs a fuzzy search using a keyword such as part of an item name. The search uses the player's language locale.
+
+Like `search`, it accepts `-p <profile>` / `--profile <profile>` to pick a profile. Example: `sf fuzzy-search dia --profile mining`
+
+### The `-p` / `--profile` profile flag
+
+All three search commands (`search` / `search-book` / `fuzzy-search`) accept an optional `-p <profile>` or `--profile <profile>` flag.
+
+- Without the flag, the currently active profile is used (falling back to defaults if unset).
+- If the named profile does not exist, the command shows an error (`プロファイル '<name>' が見つかりません`) and does not run the search.
+
+Profiles are created, switched, and edited through `sf setting` (a GUI).
+
+### `sf setting`
+
+Manages search profiles (named sets of search options such as sort order and result limits) through a GUI.
+
+- `sf setting` — Opens the search-settings GUI for the currently active profile.
+- `sf setting <profile>` — Opens the GUI for `<profile>`, creating it if it does not exist.
+- `sf setting list` — Lists all profiles. The active profile is marked "(active)".
+- `sf setting use <profile>` — Switches the active profile.
+- `sf setting delete <profile>` — Deletes a profile. `default` cannot be deleted. If you delete the active profile, the active profile reverts to `default`.
+
+These commands are player-only and require no extra permission. For details on how to operate the GUI, see [Search profile settings](/en/docs/usage/profiles).
+
+### `sf help`
+
+Displays a link to the plugin's documentation.
+
+### `sf reload`
+
+Reloads `config.json`. Running this command requires the `advancedshopfinder.admin` permission.
+
+:::note
+Search options such as sort order and result limits can be set per-search with the `-p <profile>` flag. Profiles are created, switched, and edited through `/sf setting` (a GUI). See [Search profile settings](/en/docs/usage/profiles) for how to use it, and [Search options](/en/docs/config/find-options) for the underlying option format.
+:::

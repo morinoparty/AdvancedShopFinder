@@ -17,7 +17,7 @@ import org.koin.core.component.inject
 import java.util.*
 import kotlin.random.Random
 
-class LuminescenceShulker: KoinComponent {
+class LuminescenceShulker : KoinComponent {
     val protocolManager: ProtocolManager by inject()
     private val ids = arrayListOf<Int>()
     private val blocks = arrayListOf<Location>()
@@ -41,21 +41,27 @@ class LuminescenceShulker: KoinComponent {
                     shulkerPacket.integers.write(0, entityId)
                     shulkerPacket.entityTypeModifier.write(0, EntityType.SHULKER)
                     shulkerPacket.uuiDs.write(0, UUID.randomUUID())
-                    shulkerPacket.doubles.write(0, location.x).write(1, location.y).write(2, location.z)
+                    shulkerPacket.doubles
+                        .write(0, location.x)
+                        .write(1, location.y)
+                        .write(2, location.z)
                     val byteSerializer = WrappedDataWatcher.Registry.get(java.lang.Byte::class.java)
                     val shulkerEffectPacket = PacketContainer(PacketType.Play.Server.ENTITY_METADATA)
                     shulkerEffectPacket.integers.write(0, entityId)
                     val watcher = WrappedDataWatcher()
                     watcher.setObject(
-                        WrappedDataWatcherObject(0, byteSerializer), 0x60.toByte()
+                        WrappedDataWatcherObject(0, byteSerializer),
+                        0x60.toByte(),
                     )
                     val wrappedDataValueList: MutableList<WrappedDataValue> = arrayListOf()
                     watcher.watchableObjects.stream().filter(Objects::nonNull).forEach { entry ->
                         val dataWatcherObject: WrappedDataWatcherObject = entry.watcherObject
                         wrappedDataValueList.add(
                             WrappedDataValue(
-                                dataWatcherObject.index, dataWatcherObject.serializer, entry.rawValue
-                            )
+                                dataWatcherObject.index,
+                                dataWatcherObject.serializer,
+                                entry.rawValue,
+                            ),
                         )
                     }
                     shulkerEffectPacket.dataValueCollectionModifier.write(0, wrappedDataValueList)

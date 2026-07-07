@@ -4,12 +4,12 @@ import com.ghostchu.quickshop.api.QuickShopAPI
 import com.ghostchu.quickshop.api.shop.Shop
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.advancedshopfinder.AdvancedShopFinder
+import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import dev.nikomaru.advancedshopfinder.files.server.ConfigData
 import dev.nikomaru.advancedshopfinder.files.server.PlaceData
 import dev.nikomaru.advancedshopfinder.utils.coroutines.async
 import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
-import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.getPlayerFindOption
 import dev.nikomaru.advancedshopfinder.utils.data.SortType
 import dev.nikomaru.advancedshopfinder.utils.display.LuminescenceShulker
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,7 @@ import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.CommandDescription
+import org.incendo.cloud.annotations.Flag
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -41,8 +42,12 @@ object ShopSearchCommand : KoinComponent {
 
     @Command("search <item>")
     @CommandDescription("アイテムを検索します")
-    suspend fun searchItem(sender: CommandSender, @Argument("item") itemArray: Array<Material>) {
-        val options = (sender as? Player)?.getPlayerFindOption() ?: FindOption()
+    suspend fun searchItem(
+        sender: CommandSender,
+        @Argument("item") itemArray: Array<Material>,
+        @Flag(value = "profile", aliases = ["p"]) profile: String?,
+    ) {
+        val options = resolveFindOption(sender, profile) ?: return
         val shop = quickShop.shopManager.allShops.filter {
             itemArray.toList().contains(it.item.type)
         }
@@ -73,23 +78,16 @@ object ShopSearchCommand : KoinComponent {
                 if (buying) it.remainingSpace else it.remainingStock
             } > 0 || it.isUnlimited)
         }
-        val sortType = if (buying) options.sortOption.buySortType else options.sortOption.sellSortType
-        if (sender !is Player) {
-            filteredShops = if (buying) filteredShops.sortedBy { it.price }
-            else filteredShops.sortedByDescending { it.price }
+        val sortTypes = if (buying) options.sortOption.buySortTypes else options.sortOption.sellSortTypes
+        filteredShops = if (sender !is Player) {
+            if (buying) filteredShops.sortedBy { it.price } else filteredShops.sortedByDescending { it.price }
         } else {
-            filteredShops = when (sortType) {
-                SortType.ASC_PRICE_PER_STACK -> filteredShops.sortedBy { it.price }
-                SortType.DESC_PRICE_PER_STACK -> filteredShops.sortedByDescending { it.price }
-                SortType.ASC_PRICE_PER_ITEM -> filteredShops.sortedBy { it.price / it.shopStackingAmount }
-                SortType.DESC_PRICE_PER_ITEM -> filteredShops.sortedByDescending { it.price / it.shopStackingAmount }
-                SortType.ASC_DISTANCE -> filteredShops.sortedBy { getPlayerDistance(sender.location, it) }
-                SortType.DESC_DISTANCE -> filteredShops.sortedByDescending { getPlayerDistance(sender.location, it) }
-                SortType.ASC_DISTANCE_NEAREST -> filteredShops.sortedBy { getNearestPlaceDistance(it) }
-                SortType.DESC_DISTANCE_NEAREST -> filteredShops.sortedByDescending {
-                    getNearestPlaceDistance(it)
-                }
-            }
+            // 優先順位リストを連結した多段コンパレータで並び替える（先頭が第一基準）
+            val comparator =
+                sortTypes
+                    .map { sortComparator(it, sender.location) }
+                    .reduceOrNull { acc, next -> acc.then(next) }
+            if (comparator != null) filteredShops.sortedWith(comparator) else filteredShops
         }
         var newMessage = message
         var newSum = sum
@@ -140,6 +138,22 @@ object ShopSearchCommand : KoinComponent {
         return message
     }
 
+
+    /** 単一の [SortType] を [Shop] のコンパレータに変換する。多段ソートで連結して使う。 */
+    private fun sortComparator(
+        sortType: SortType,
+        playerLocation: Location,
+    ): Comparator<Shop> =
+        when (sortType) {
+            SortType.ASC_PRICE_PER_STACK -> compareBy { it.price }
+            SortType.DESC_PRICE_PER_STACK -> compareByDescending { it.price }
+            SortType.ASC_PRICE_PER_ITEM -> compareBy { it.price / it.shopStackingAmount }
+            SortType.DESC_PRICE_PER_ITEM -> compareByDescending { it.price / it.shopStackingAmount }
+            SortType.ASC_DISTANCE -> compareBy { getPlayerDistance(playerLocation, it) }
+            SortType.DESC_DISTANCE -> compareByDescending { getPlayerDistance(playerLocation, it) }
+            SortType.ASC_DISTANCE_NEAREST -> compareBy { getNearestPlaceDistance(it) }
+            SortType.DESC_DISTANCE_NEAREST -> compareByDescending { getNearestPlaceDistance(it) }
+        }
 
     private fun getNearestPlaceDistance(shopChest: Shop) =
         hypot(getNearPlace(shopChest)!!.x.toDouble() - shopChest.location.blockX, getNearPlace(shopChest)!!.z.toDouble() - shopChest.location.blockZ)

@@ -1,16 +1,15 @@
 package dev.nikomaru.advancedshopfinder.commands
 
 import com.ghostchu.quickshop.api.QuickShopAPI
-import dev.nikomaru.advancedshopfinder.utils.data.FindOption
-import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.getPlayerFindOption
+import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.command.CommandSender
 import org.bukkit.enchantments.Enchantment
-import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -21,14 +20,16 @@ object EnchantFindCommand: KoinComponent {
 
     @Command("search-book <enchantment>")
     suspend fun enchantFind(
-        sender: CommandSender, @Argument("enchantment") enchantment: Enchantment
+        sender: CommandSender,
+        @Argument("enchantment") enchantment: Enchantment,
+        @Flag(value = "profile", aliases = ["p"]) profile: String?,
     ) {
+        val options = resolveFindOption(sender, profile) ?: return
         val shop = quickShop.shopManager.allShops.filter {
             it.item.type == Material.ENCHANTED_BOOK && (it.item.itemMeta as EnchantmentStorageMeta).hasStoredEnchant(
                 enchantment
             )
         }
-        val options = (sender as? Player)?.getPlayerFindOption() ?: FindOption()
 
         if (shop.isEmpty()) {
             sender.sendRichMessage("検索結果: 0件")

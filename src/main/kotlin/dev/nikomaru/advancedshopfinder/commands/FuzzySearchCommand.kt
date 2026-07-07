@@ -1,9 +1,8 @@
 package dev.nikomaru.advancedshopfinder.commands
 
 import com.ghostchu.quickshop.api.QuickShopAPI
+import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import dev.nikomaru.advancedshopfinder.files.server.ConfigData
-import dev.nikomaru.advancedshopfinder.utils.data.FindOption
-import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.getPlayerFindOption
 import dev.nikomaru.advancedshopfinder.utils.translate.TranslateManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
@@ -11,6 +10,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import org.incendo.cloud.annotations.Flag
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -22,7 +22,12 @@ object FuzzySearchCommand : KoinComponent {
     private val quickShop: QuickShopAPI by inject()
 
     @Command("fuzzy-search <name>")
-    suspend fun fuzzySearch(sender: CommandSender, @Argument("name") name: String) {
+    suspend fun fuzzySearch(
+        sender: CommandSender,
+        @Argument("name") name: String,
+        @Flag(value = "profile", aliases = ["p"]) profile: String?,
+    ) {
+        val options = resolveFindOption(sender, profile) ?: return
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()
         val needle = name.lowercase()
         val keySet = translateManager.getTranslateMap(locale)
@@ -32,7 +37,6 @@ object FuzzySearchCommand : KoinComponent {
             .toHashSet()
 
         val plain = PlainTextComponentSerializer.plainText()
-        val options = (sender as? Player)?.getPlayerFindOption() ?: FindOption()
         val shop = quickShop.shopManager.allShops.filter {
             keySet.contains(it.item.type.translationKey().lowercase())
                 || plain.serialize(it.item.displayName()).lowercase().contains(needle)

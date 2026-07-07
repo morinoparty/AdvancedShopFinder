@@ -1,0 +1,95 @@
+---
+title: 検索オプション
+description: プレイヤーごとに検索の挙動をプロファイルとして設定する仕組み
+---
+
+## 概要
+
+検索オプション（プロファイル）は、プレイヤーごとに検索の挙動（並び順・件数上限・在庫表示など）を個別に設定できる仕組みです。これにより、利用者は好みに合わせた検索結果を得られ、UX が向上します。設定は JSON 形式で保存されます。
+
+設定ファイルは各プレイヤーごとに次の場所へ保存されます。初回利用時に自動生成されます。
+
+```text
+plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
+```
+
+## ゲーム内での編集
+
+このページで説明する各プロファイルは、ファイルを直接編集しなくても、ゲーム内から編集・選択できます。
+
+- `/sf setting` で GUI（チェストインベントリ）を開き、並び順・件数上限・在庫表示などを操作できます。保存すると `config.json` に書き込まれます。
+- 検索コマンドに `-p <プロファイル名>` / `--profile <プロファイル名>` を付けると、そのプロファイルを一時的に適用して検索できます（例: `sf search diamond -p mining`）。
+
+操作方法の詳細は[検索プロファイル設定](/ja/docs/usage/profiles)を参照してください。以降のセクションでは、これらの操作で読み書きされる JSON ファイルの構造を説明します。
+
+## ファイル構造
+
+トップレベルは `PlayerFindOption` で、次のフィールドを持ちます。
+
+| フィールド | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `setting` | String | `"default"` | 現在使用中のプロファイル名。 |
+| `findOptions` | Map&lt;String, FindOption&gt; | `"default"` を含む | プロファイル名 → 設定のマップ。 |
+
+各プロファイルの実体は `FindOption` で、次のフィールドを持ちます。
+
+| フィールド | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `version` | Int | `1` | 設定フォーマットのバージョン。 |
+| `limitAmountOption.buyFindLimit` | Int | `-1` | 買取ショップの検索結果上限（`-1` は無制限）。 |
+| `limitAmountOption.sellFindLimit` | Int | `-1` | 販売ショップの検索結果上限（`-1` は無制限）。 |
+| `sortOption.buySortTypes` | SortType[] | `["DESC_PRICE_PER_ITEM"]` | 買取ショップの並び順（優先順位リスト。先頭が第一基準）。 |
+| `sortOption.sellSortTypes` | SortType[] | `["ASC_PRICE_PER_ITEM"]` | 販売ショップの並び順（優先順位リスト。先頭が第一基準）。 |
+| `showNoStockShop` | Boolean | `false` | 在庫切れショップを表示するか。 |
+| `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | オーナーの所持金が不足している買取ショップを表示するか。 |
+
+## 設定例
+
+```json title="playerdata/<uuid>/config.json"
+{
+  "setting": "default",
+  "findOptions": {
+    "default": {
+      "version": 1,
+      "limitAmountOption": {
+        "buyFindLimit": -1,
+        "sellFindLimit": -1
+      },
+      "sortOption": {
+        "buySortTypes": ["DESC_PRICE_PER_ITEM"],
+        "sellSortTypes": ["ASC_PRICE_PER_ITEM"]
+      },
+      "showNoStockShop": false,
+      "showOwnerNotHasEnoughMoneyShop": false
+    }
+  }
+}
+```
+
+## SortType 一覧
+
+`buySortTypes` / `sellSortTypes` の各要素には次のいずれかの値を指定できます。**リストは優先順位順**で、先頭が第一ソート基準、値が同じショップ同士は次の要素で比較されます（多段ソート）。
+
+| 値 | 説明 |
+| --- | --- |
+| `ASC_PRICE_PER_STACK` | スタック当たりの金額が安い順 |
+| `DESC_PRICE_PER_STACK` | スタック当たりの金額が高い順 |
+| `ASC_PRICE_PER_ITEM` | アイテム当たりの金額が安い順 |
+| `DESC_PRICE_PER_ITEM` | アイテム当たりの金額が高い順 |
+| `ASC_DISTANCE` | 距離が近い順 |
+| `DESC_DISTANCE` | 距離が遠い順 |
+| `ASC_DISTANCE_NEAREST` | 最寄りの拠点が近い順 |
+| `DESC_DISTANCE_NEAREST` | 最寄りの拠点が遠い順 |
+
+:::tip 多段ソートの例
+`"sellSortTypes": ["ASC_DISTANCE", "ASC_PRICE_PER_ITEM"]` とすると、まず距離が近い順に並び、距離が同じショップはアイテム単価が安い順に並びます。GUI（`/sf setting`）では優先度スロットを Shift クリックで上下に並べ替えできます。
+:::
+
+:::note
+`setting` で選択したプロファイルが `findOptions` に存在しない場合、そのプレイヤーには検索オプションが適用されません。プロファイル名は `findOptions` のキーと一致させてください。
+:::
+
+<Cards>
+  <Card title="コマンド" href="/ja/docs/usage/commands" description="検索に使用するコマンド一覧" />
+  <Card title="コンフィグ" href="/ja/docs/config/server" description="サーバー全体の設定" />
+</Cards>

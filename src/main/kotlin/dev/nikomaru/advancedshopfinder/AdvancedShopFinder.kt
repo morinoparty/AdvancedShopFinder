@@ -4,7 +4,9 @@ import com.comphenix.protocol.ProtocolLibrary
 import com.ghostchu.quickshop.api.QuickShopAPI
 import dev.nikomaru.advancedshopfinder.commands.EnchantFindCommand
 import dev.nikomaru.advancedshopfinder.commands.FuzzySearchCommand
+import dev.nikomaru.advancedshopfinder.commands.HelpCommand
 import dev.nikomaru.advancedshopfinder.commands.ReloadCommand
+import dev.nikomaru.advancedshopfinder.commands.SettingCommand
 import dev.nikomaru.advancedshopfinder.commands.ShopSearchCommand
 import dev.nikomaru.advancedshopfinder.commands.utils.parser.EnchantmentParser
 import dev.nikomaru.advancedshopfinder.commands.utils.parser.MaterialArrayParser
@@ -12,6 +14,7 @@ import dev.nikomaru.advancedshopfinder.files.server.Config
 import dev.nikomaru.advancedshopfinder.utils.translate.TranslateManager
 import dev.nikomaru.advancedshopfinder.utils.translate.TranslateManagerImpl
 import kotlinx.serialization.ExperimentalSerializationApi
+import net.milkbowl.vault.economy.Economy
 import org.bukkit.command.CommandSender
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.annotations.AnnotationParser
@@ -23,9 +26,7 @@ import org.incendo.cloud.setting.ManagerSetting
 import org.koin.core.context.GlobalContext
 import org.koin.dsl.module
 
-
-open class AdvancedShopFinder: JavaPlugin() {
-
+open class AdvancedShopFinder : JavaPlugin() {
     @OptIn(ExperimentalSerializationApi::class)
     override fun onEnable() { // Plugin startup logic
         setupKoin()
@@ -35,12 +36,18 @@ open class AdvancedShopFinder: JavaPlugin() {
 
     private fun setupKoin() {
         GlobalContext.getOrNull() ?: GlobalContext.startKoin {
-            modules(module {
-                single { this@AdvancedShopFinder }
-                single { QuickShopAPI.getInstance() }
-                single { ProtocolLibrary.getProtocolManager() }
-                single<TranslateManager> {  TranslateManagerImpl() }
-            })
+            modules(
+                module {
+                    single { this@AdvancedShopFinder }
+                    single { QuickShopAPI.getInstance() }
+                    single { ProtocolLibrary.getProtocolManager() }
+                    single<TranslateManager> { TranslateManagerImpl() }
+                    single<Economy> {
+                        server.servicesManager.getRegistration(Economy::class.java)?.provider
+                            ?: throw IllegalStateException("Vault Economy plugin not found")
+                    }
+                },
+            )
         }
     }
 
@@ -48,10 +55,11 @@ open class AdvancedShopFinder: JavaPlugin() {
     }
 
     private fun setCommand() {
-        val commandManager = LegacyPaperCommandManager.createNative(
-            this,
-            ExecutionCoordinator.simpleCoordinator()
-        )
+        val commandManager =
+            LegacyPaperCommandManager.createNative(
+                this,
+                ExecutionCoordinator.simpleCoordinator(),
+            )
 
         if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             commandManager.registerAsynchronousCompletions()
@@ -62,7 +70,6 @@ open class AdvancedShopFinder: JavaPlugin() {
         commandManager.parserRegistry().registerParser(MaterialArrayParser.materialArrayParser())
         commandManager.parserRegistry().registerParser(EnchantmentParser.enchantmentParser())
 
-
         val annotationParser = AnnotationParser(commandManager, CommandSender::class.java)
         annotationParser.installCoroutineSupport()
 
@@ -71,7 +78,9 @@ open class AdvancedShopFinder: JavaPlugin() {
                 EnchantFindCommand,
                 FuzzySearchCommand,
                 ReloadCommand,
-                ShopSearchCommand
+                ShopSearchCommand,
+                HelpCommand,
+                SettingCommand,
             )
         }
     }

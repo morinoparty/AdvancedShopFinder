@@ -11,7 +11,10 @@ import org.bukkit.NamespacedKey
 object NamespacedKeySerializer : KSerializer<NamespacedKey> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NamespacedKey", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: NamespacedKey) {
+    override fun serialize(
+        encoder: Encoder,
+        value: NamespacedKey,
+    ) {
         encoder.encodeString("${value.namespace}:${value.key}")
     }
 

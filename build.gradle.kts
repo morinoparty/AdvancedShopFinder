@@ -1,5 +1,4 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
@@ -10,19 +9,12 @@ plugins {
     alias(libs.plugins.shadow)
     alias(libs.plugins.run.paper)
     alias(libs.plugins.resource.factory)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 group = "dev.nikomaru"
-version = "1.0-SNAPSHOT"
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
-    }
-}
+val version: String by project
 
 repositories {
     mavenCentral()
@@ -33,7 +25,6 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-public/")
     maven("https://repo.dmulloy2.net/repository/public/")
 }
-
 
 dependencies {
     compileOnly(libs.paper.api)
@@ -56,33 +47,55 @@ dependencies {
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
 
+    implementation(libs.inventoryframework)
+
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mock.bukkit)
 
+    testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.bundles.koin.test)
 }
 
 kotlin {
-    jvmToolchain {
-        (this).languageVersion.set(JavaLanguageVersion.of(21))
-    }
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
+detekt {
+    // 既存コードのスタイル差異でビルドを止めないため、検出のみ行う
+    ignoreFailures = true
+}
+
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    debug.set(true)
+    ignoreFailures.set(true)
+    filter {
+        include("src/**")
+        include("buildSrc/**")
+        exclude("**/config/**")
+    }
+}
 
 tasks {
     compileKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
         compilerOptions.javaParameters = true
-        compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_0)
+        compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_2)
     }
     compileTestKotlin {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
     }
     build {
         dependsOn(shadowJar)
+    }
+    shadowJar {
+        // InventoryFramework は各プラグインへシェードして使うため、衝突回避に再配置する
+        relocate(
+            "com.github.stefvanschie.inventoryframework",
+            "dev.nikomaru.advancedshopfinder.libs.inventoryframework",
+        )
     }
     runServer {
         minecraftVersion("1.21.11")
@@ -104,7 +117,6 @@ tasks {
             exceptionFormat = TestExceptionFormat.FULL
         }
     }
-
 }
 
 sourceSets.main {
@@ -112,7 +124,7 @@ sourceSets.main {
         bukkitPluginYaml {
             name = rootProject.name
             version = project.version.toString()
-            website = "https://github.com/Nlkomaru/AdvancedShopFinder"
+            website = "https://github.com/morinoparty/AdvancedShopFinder"
             main = "$group.advancedshopfinder.AdvancedShopFinder"
             apiVersion = "1.20"
             libraries = libs.bundles.coroutines.asString() +
@@ -121,12 +133,10 @@ sourceSets.main {
         }
     }
 }
-//TODO add translations
 
 tasks.register("generateTranslate", dev.nikomaru.tasks.GenerateTranslateTask::class)
 
-fun Provider<ExternalModuleDependencyBundle>.asString(): List<String> {
-    return this.get().map { dependency ->
+fun Provider<ExternalModuleDependencyBundle>.asString(): List<String> =
+    this.get().map { dependency ->
         "${dependency.group}:${dependency.name}:${dependency.version}"
     }
-}

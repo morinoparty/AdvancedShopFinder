@@ -6,12 +6,15 @@ on:
 
 jobs:
   build:
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -20,8 +23,24 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
+
+      - name: Set version env
+        run: |
+          before="${{ github.event.release.tag_name }}"
+          after="${before//v/}"
+          echo "PLUGIN_VERSION=$after" >> $GITHUB_ENV
+
+      - name: change plugin.yml version
+        run: |
+          echo "バージョンは ${{ env.PLUGIN_VERSION }} です"
+          sed -i "s/VersionPlaceholder/${{ env.PLUGIN_VERSION }}/" ./gradle.properties
+
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build
+
+      - name: Change file name
+        run:
+          mv ./build/libs/AdvancedShopFinder-*-all.jar ./build/libs/AdvancedShopFinder_${{ env.PLUGIN_VERSION }}.jar
 
       - name: Upload release
         uses: actions/upload-release-asset@v1
@@ -29,7 +48,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./build/libs/AdvancedShopFinder-1.0-SNAPSHOT-all.jar
+          asset_path: ./build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
           asset_name: AdvancedShopFinder_${{ github.event.release.tag_name }}.jar
           asset_content_type: application/jar
 

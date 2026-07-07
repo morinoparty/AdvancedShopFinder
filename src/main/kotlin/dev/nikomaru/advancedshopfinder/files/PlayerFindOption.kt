@@ -8,5 +8,3 @@ data class PlayerFindOption(
     val setting: String = "default",
     val findOptions: HashMap<String, FindOption> = hashMapOf("default" to FindOption()),
 )
-
-

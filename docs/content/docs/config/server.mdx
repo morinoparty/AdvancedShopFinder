@@ -1,0 +1,80 @@
+---
+title: コンフィグ
+description: Advanced Shop Finder のサーバー設定ファイル config.json の解説
+---
+
+## 設定ファイルの場所
+
+Advanced Shop Finder のサーバー設定は `plugins/AdvancedShopFinder/config.json` に保存されます。このファイルはプラグインの初回起動時に自動生成されます。
+
+## 設定項目
+
+`config.json` には次の項目があります。
+
+| 項目 | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `placeData` | 地点のリスト | もりもと (1 件) | 最寄りの町（near-town）を算出するための基準地点。 |
+| `fuzzySearchLimit` | 整数 | `50` | あいまい検索で取得する件数の上限。あいまい検索は多数ヒットするため、この値で件数を制限します。 |
+| `format` | 文字列 (MiniMessage) | 下記参照 | 検索結果 1 件の表示フォーマット。 |
+
+### placeData
+
+`placeData` は地点エントリのリストです。各エントリは次の 3 つのフィールドのみを持ちます。
+
+| フィールド | 型 | 説明 |
+| --- | --- | --- |
+| `x` | 整数 | 地点の X 座標。 |
+| `z` | 整数 | 地点の Z 座標。 |
+| `placeName` | 文字列 | 地点の名前。MiniMessage 形式に対応。 |
+
+ここに登録した地点をもとに、各ショップの最寄りの町（near-town）とその距離が算出されます。
+
+:::note
+`placeData` のエントリに `world`（ワールド）フィールドはありません。地点は `x` / `z` / `placeName` の 3 つだけで指定します。
+:::
+
+## デフォルトの config.json
+
+```json title="config.json"
+{
+  "placeData": [
+    {
+      "x": -532,
+      "z": -85,
+      "placeName": "もりもと"
+    }
+  ],
+  "fuzzySearchLimit": 50,
+  "format": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック 最寄り: <near-town>から<green><near-town-distance></green>ブロック"
+}
+```
+
+## format について
+
+`format` は検索結果 1 件の表示フォーマットで、[MiniMessage](https://docs.advntr.dev/minimessage/format) 形式をサポートします。以下のプレースホルダが差し込まれます。
+
+| プレースホルダ | 説明 |
+| --- | --- |
+| `<shop-type>` | 買取（赤） / 販売（緑）の種別。 |
+| `<player-name>` | ショップオーナー名。 |
+| `<price>` | 販売金額。 |
+| `<shop-stacking-amount>` | 販売単位（例: 32 個）。 |
+| `<count>` | 在庫数（1 スタック 64 個換算。5 スタックなら 5 × 64 と表現）。 |
+| `<distance>` | 直線距離。 |
+| `<near-town>` | 最寄りの町。 |
+| `<near-town-distance>` | 最寄りの町の中心からの直線距離。 |
+| `<world>` | ショップのワールド名。 |
+| `<x>` | ショップの X 座標。 |
+| `<y>` | ショップの Y 座標。 |
+| `<z>` | ショップの Z 座標。 |
+
+## 設定の反映
+
+:::warning
+`config.json` を編集した後は、`sf reload` コマンドを実行するか、サーバーを再起動しないと変更が反映されません。`sf reload` の実行には `advancedshopfinder.admin` 権限が必要です。
+:::
+
+<Cards>
+  <Card title="コマンド" href="/ja/docs/usage/commands" description="reload をはじめとするコマンド一覧" />
+  <Card title="検索オプション" href="/ja/docs/config/find-options" description="プレイヤーごとの検索設定" />
+</Cards>

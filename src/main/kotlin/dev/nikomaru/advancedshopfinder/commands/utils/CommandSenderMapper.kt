@@ -7,9 +7,7 @@ import org.incendo.cloud.SenderMapper
 
 @Suppress("UnstableApiUsage")
 class CommandSenderMapper : SenderMapper<CommandSourceStack, CommandSender> {
-    override fun map(source: CommandSourceStack): CommandSender {
-        return source.sender
-    }
+    override fun map(source: CommandSourceStack): CommandSender = source.sender
 
     override fun reverse(sender: CommandSender): CommandSourceStack {
         return object : CommandSourceStack {
@@ -21,25 +19,13 @@ class CommandSenderMapper : SenderMapper<CommandSourceStack, CommandSender> {
                 return Location(if (worlds.isEmpty()) null else worlds.first(), 0.0, 0.0, 0.0)
             }
 
+            override fun getSender(): CommandSender = sender
 
+            override fun getExecutor(): Entity? = if (sender is Entity) sender else null
 
-            override fun getSender(): CommandSender {
-                return sender
-            }
+            override fun withLocation(p0: Location): CommandSourceStack = sender as CommandSourceStack
 
-            override fun getExecutor(): Entity? {
-                return if (sender is Entity) sender else null
-            }
-
-
-            //TODO check later
-            override fun withLocation(p0: Location): CommandSourceStack {
-                return sender as CommandSourceStack
-            }
-
-            override fun withExecutor(p0: Entity): CommandSourceStack {
-                return sender as CommandSourceStack
-            }
+            override fun withExecutor(p0: Entity): CommandSourceStack = sender as CommandSourceStack
         }
     }
 }

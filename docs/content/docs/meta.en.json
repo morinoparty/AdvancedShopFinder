@@ -1,0 +1,12 @@
+{
+	"title": "Advanced Shop Finder",
+	"pages": [
+		"index",
+		"---Usage---",
+		"...usage",
+		"---Configuration---",
+		"...config",
+		"---Developer---",
+		"...developer"
+	]
+}
