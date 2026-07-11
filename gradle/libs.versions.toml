@@ -2,7 +2,7 @@
 paper = "1.21.11-R0.1-SNAPSHOT"
 mccoroutine = "2.22.0"
 cloud = "2.0.0"
-cloudPaper = "2.0.0-beta.17"
+cloudPaper = "2.0.0-SNAPSHOT"
 coroutine = "1.11.0"
 serialization = "1.11.0"
 vault = "1.7.1"
