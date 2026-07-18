@@ -128,7 +128,7 @@ sourceSets.main {
             main = "$group.advancedshopfinder.AdvancedShopFinder"
             apiVersion = "1.20"
             libraries = libs.bundles.coroutines.asString() +
-                listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.0")
+                listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.10")
             depend = listOf("QuickShop-Hikari", "ProtocolLib")
         }
     }
