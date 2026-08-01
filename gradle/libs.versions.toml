@@ -15,7 +15,7 @@ junit = "6.1.2"
 mockBukkit = "4.110.0"
 ktlint = "14.2.0"
 detekt = "2.0.0-alpha.5"
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
