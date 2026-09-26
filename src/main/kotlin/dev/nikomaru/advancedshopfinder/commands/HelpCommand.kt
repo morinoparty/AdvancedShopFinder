@@ -8,6 +8,6 @@ object HelpCommand {
     @Command("help")
     fun help(sender: CommandSender) {
         sender.sendMessage("§6§lAdvancedShopFinder §7- §fヘルプ")
-        sender.sendRichMessage("<click:open_url:'https://advanced-shop-finder.plugin.nikomaru.page'>ドキュメントを開く</click>")
+        sender.sendRichMessage("<click:open_url:'https://advanced-shop-finder.plugin.morino.party'>ドキュメントを開く</click>")
     }
 }

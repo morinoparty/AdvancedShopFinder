@@ -43,7 +43,7 @@ class FindOptionGui(
     private var buyEntries: List<SortEntry> = initial.sortOption.buySortTypes.toSortEntries()
     private var sellEntries: List<SortEntry> = initial.sortOption.sellSortTypes.toSortEntries()
 
-    private val gui = ChestGui(6, "検索設定: $profileName")
+    private val gui = createChestGui(6, "検索設定: $profileName")
     private val pane = StaticPane(9, 6)
 
     private val buyLabelItem = GuiItem(ItemStack(Material.PAPER)) { it.isCancelled = true }
@@ -313,3 +313,11 @@ class FindOptionGui(
         }
     }
 }
+
+/**
+ * InventoryFramework 0.12.1 では `ChestGui` を直接生成すると、アノテーション処理が
+ * 引数なしメソッドの `getParameterTypes()[0]` を読んで ArrayIndexOutOfBoundsException になる。
+ * 処理対象は `getClass().getDeclaredMethods()` のみなので、メソッドを持たない匿名サブクラスで回避する。
+ * 0.12.2 で修正予定（https://github.com/stefvanschie/IF/issues/2548）。
+ */
+internal fun createChestGui(rows: Int, title: String): ChestGui = object : ChestGui(rows, title) {}

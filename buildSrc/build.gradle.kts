@@ -12,14 +12,12 @@ buildscript {
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20")
     }
 }
 
 repositories {
     mavenCentral()
-
-    maven("https://repo.papermc.io/repository/maven-public/")
 
 }
 
@@ -28,8 +26,6 @@ dependencies {
     implementation(localGroovy())
     implementation(libs.kotlinx.serialization.json)
     implementation("com.google.code.gson:gson:2.14.0")
-    compileOnly(libs.paper.api)
-    implementation(libs.mock.bukkit)
 
 }
 

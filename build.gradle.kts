@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import java.time.Duration
 
 plugins {
     java
@@ -98,11 +99,11 @@ tasks {
         )
     }
     runServer {
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.3")
         downloadPlugins {
-            modrinth("quickshop-hikari", "6.2.0.11")
-            github("dmulloy2", "ProtocolLib", "5.4.0", "ProtocolLib.jar")
-            url("https://cdn.modrinth.com/data/hXiIvTyT/versions/Oa9ZDzZq/EssentialsX-2.21.2.jar")
+            modrinth("quickshop-hikari", "6.3.0.3")
+            github("dmulloy2", "ProtocolLib", "dev-build", "ProtocolLib.jar")
+            url("https://cdn.modrinth.com/data/hXiIvTyT/versions/nY6VN1XH/EssentialsX-2.22.0.jar")
             github("Milkbowl", "Vault", "1.7.3", "Vault.jar")
         }
     }
@@ -119,6 +120,55 @@ tasks {
     }
 }
 
+testing {
+    suites {
+        // ゲーム内テストは Minecraft のクライアントと Xvfb が要るため、既定の test（./gradlew build が実行する）とは分ける。
+        // 独自の JvmTestSuite は check に含まれないので、build では実行されない
+        register<JvmTestSuite>("gameTest") {
+            useJUnitJupiter(libs.versions.junit)
+            dependencies {
+                implementation(libs.fukurou)
+                // JUnit 6 が suspend のテストメソッドを呼ぶには kotlinx-coroutines-core が要る
+                implementation(libs.kotlinx.coroutines.core)
+                runtimeOnly(libs.junit.platform.launcher)
+            }
+            targets.configureEach {
+                testTask.configure {
+                    description = "Runs the in-game tests with fukurou (needs Xvfb, xdotool, xmodmap and Mesa; CI only)"
+                    // CI は build ジョブの JAR を -Pfukurou.plugin.advancedshopfinder で渡す。無ければここで shadowJar を作る
+                    val prebuilt = providers.gradleProperty("fukurou.plugin.advancedshopfinder")
+                    if (!prebuilt.isPresent) dependsOn(tasks.shadowJar)
+                    val pluginJar =
+                        prebuilt.orElse(tasks.shadowJar.flatMap { it.archiveFile }.map { it.asFile.absolutePath })
+                    // -Pfukurou.* をすべてシステムプロパティとして渡す（minecraftVersion, paperChannel, acceptEula, outDir …）
+                    val forwarded = providers.gradlePropertiesPrefixedBy("fukurou.")
+                    jvmArgumentProviders.add(
+                        CommandLineArgumentProvider {
+                            forwarded.get().filterKeys { it != "fukurou.plugin.advancedshopfinder" }.map { (k, v) -> "-D$k=$v" } +
+                                "-Dfukurou.plugin.advancedshopfinder=${pluginJar.get()}"
+                        },
+                    )
+                    systemProperty("fukurou.outDir.default", layout.buildDirectory.dir("fukurou/out").get().asFile.absolutePath)
+                    systemProperty("fukurou.workDir.default", layout.buildDirectory.dir("fukurou/work").get().asFile.absolutePath)
+                    // サーバーのリースとメモリ予算は 1 つの JVM を前提にしている
+                    maxParallelForks = 1
+                    forkEvery = 0
+                    maxHeapSize = "512m"
+                    // 実機テストは入力が同じでも結果が変わるので毎回実行する
+                    outputs.upToDateWhen { false }
+                    // CI の timeout-minutes（30）より短くし、強制終了の前に JUnit の XML と result.json を書き終える
+                    timeout.set(Duration.ofMinutes(25))
+                    testLogging {
+                        showStandardStreams = true
+                        events("passed", "skipped", "failed")
+                        exceptionFormat = TestExceptionFormat.FULL
+                    }
+                }
+            }
+        }
+    }
+}
+
 sourceSets.main {
     resourceFactory {
         bukkitPluginYaml {
@@ -128,7 +178,7 @@ sourceSets.main {
             main = "$group.advancedshopfinder.AdvancedShopFinder"
             apiVersion = "1.20"
             libraries = libs.bundles.coroutines.asString() +
-                listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.10")
+                listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.20")
             depend = listOf("QuickShop-Hikari", "ProtocolLib")
         }
     }

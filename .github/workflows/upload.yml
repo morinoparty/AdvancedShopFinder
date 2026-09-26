@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'gradle'
 
       - name: Change wrapper permissions
@@ -48,7 +48,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./build/libs/MoripaFishing_${{ env.PLUGIN_VERSION }}.jar
+          asset_path: ./build/libs/AdvancedShopFinder_${{ env.PLUGIN_VERSION }}.jar
           asset_name: AdvancedShopFinder_${{ github.event.release.tag_name }}.jar
           asset_content_type: application/jar
 
