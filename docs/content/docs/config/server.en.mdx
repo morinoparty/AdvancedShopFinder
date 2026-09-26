@@ -16,21 +16,25 @@ The server configuration for Advanced Shop Finder is stored at `plugins/Advanced
 | `placeData` | List of places | Morimoto (1 entry) | Reference points used to compute the nearest town (near-town). |
 | `fuzzySearchLimit` | Integer | `50` | The maximum number of results returned by fuzzy search. Fuzzy search can match many shops, so this value caps the result count. |
 | `format` | String (MiniMessage) | See below | The display format for a single search result. |
+| `formatWithoutNearTown` | String (MiniMessage) | See below | The display format used when no `placeData` entry exists in the same world as the shop. |
 
 ### placeData
 
-`placeData` is a list of place entries. Each entry has **only** the following three fields.
+`placeData` is a list of place entries. Each entry has the following fields.
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `x` | Integer | The X coordinate of the place. |
-| `z` | Integer | The Z coordinate of the place. |
-| `placeName` | String | The name of the place. Supports MiniMessage. |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `x` | Integer | - | The X coordinate of the place. |
+| `z` | Integer | - | The Z coordinate of the place. |
+| `placeName` | String | - | The name of the place. Supports MiniMessage. |
+| `world` | String | `"world"` | The name of the world the place is in. |
 
 The places registered here are used to calculate the nearest town (near-town) for each shop and the distance to it.
 
 :::note
-Place entries do **not** have a `world` field. A place is defined solely by `x`, `z`, and `placeName`.
+The nearest town is chosen **only from places in the same world as the shop**. For example, a shop in the End (`world_the_end`) has no nearest town unless at least one place with `world` set to `world_the_end` is registered. In that case `formatWithoutNearTown` is used instead of `format`, and no nearest town is shown.
+
+An existing `config.json` that omits `world` still loads; those places are treated as being in the overworld (`"world"`).
 :::
 
 ## Default config.json
@@ -41,11 +45,13 @@ Place entries do **not** have a `world` field. A place is defined solely by `x`,
     {
       "x": -532,
       "z": -85,
-      "placeName": "もりもと"
+      "placeName": "もりもと",
+      "world": "world"
     }
   ],
   "fuzzySearchLimit": 50,
-  "format": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック 最寄り: <near-town>から<green><near-town-distance></green>ブロック"
+  "format": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック 最寄り: <near-town>から<green><near-town-distance></green>ブロック",
+  "formatWithoutNearTown": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック"
 }
 ```
 
@@ -67,6 +73,8 @@ Place entries do **not** have a `world` field. A place is defined solely by `x`,
 | `<x>` | The shop's X coordinate. |
 | `<y>` | The shop's Y coordinate. |
 | `<z>` | The shop's Z coordinate. |
+
+`<near-town>` and `<near-town-distance>` are substituted only when a place exists in the same world as the shop. They are not available in `formatWithoutNearTown` (if left in, they are printed as-is instead of being replaced).
 
 ## Applying changes
 
