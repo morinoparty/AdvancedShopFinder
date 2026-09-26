@@ -22,7 +22,7 @@ Advanced Shop Finder のコマンドは、次のいずれのエイリアスで�
 | `sf search-book <enchantment> [-p <profile>]` | 指定したエンチャントのエンチャント本を検索します。 | なし |
 | `sf fuzzy-search <name> [-p <profile>]` | 名前であいまい検索します（プレイヤーの言語ロケールを使用します）。 | なし |
 | `sf setting` | 現在使用中のプロファイルの検索設定 GUI を開きます。 | なし |
-| `sf setting <profile>` | 指定したプロファイルの設定 GUI を開きます（存在しない場合は作成します）。 | なし |
+| `sf setting <profile>` | 指定したプロファイルの設定 GUI を開きます（存在しない場合は作成します。上限 3 個）。 | なし |
 | `sf setting list` | すべてのプロファイルを一覧表示します（使用中のものには「使用中」と表示されます）。 | なし |
 | `sf setting use <profile>` | 使用中のプロファイルを切り替えます。 | なし |
 | `sf setting delete <profile>` | プロファイルを削除します（`default` は削除できません）。 | なし |
@@ -65,7 +65,7 @@ Advanced Shop Finder のコマンドは、次のいずれのエイリアスで�
 検索プロファイル（並び順や取得件数などの検索オプションのセット）を GUI で管理します。
 
 - `sf setting` — 現在使用中のプロファイルの検索設定 GUI を開きます。
-- `sf setting <profile>` — 指定したプロファイルの GUI を開きます。存在しない場合は新規作成します。
+- `sf setting <profile>` — 指定したプロファイルの GUI を開きます。存在しない場合は新規作成します（プロファイルは `default` を含め最大 3 個）。
 - `sf setting list` — すべてのプロファイルを一覧表示します。使用中のプロファイルには「使用中」と表示されます。
 - `sf setting use <profile>` — 使用中のプロファイルを切り替えます。
 - `sf setting delete <profile>` — プロファイルを削除します。`default` は削除できません。使用中のプロファイルを削除した場合は、使用中プロファイルが `default` に戻ります。

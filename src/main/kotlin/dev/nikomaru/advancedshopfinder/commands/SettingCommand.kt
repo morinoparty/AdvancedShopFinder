@@ -3,6 +3,8 @@ package dev.nikomaru.advancedshopfinder.commands
 import dev.nikomaru.advancedshopfinder.gui.FindOptionGui
 import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
+import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.CreateProfileResult
+import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.MAX_PROFILES
 import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.createProfile
 import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.deleteProfile
 import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.getPlayerFindOption
@@ -34,7 +36,12 @@ object SettingCommand : KoinComponent {
         @Argument("profile") profile: String,
     ) {
         val player = sender.asPlayer() ?: return
-        player.createProfile(profile)
+        if (player.createProfile(profile) == CreateProfileResult.LIMIT_REACHED) {
+            sender.sendRichMessage(
+                "<red>プロファイルは $MAX_PROFILES 個までしか作成できません。<gray>/sf setting delete <profile> で削除してください。",
+            )
+            return
+        }
         openGui(player, profile)
     }
 

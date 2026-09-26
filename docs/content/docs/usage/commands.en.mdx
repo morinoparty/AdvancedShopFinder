@@ -22,7 +22,7 @@ The examples below use `sf`.
 | `sf search-book <enchantment> [-p <profile>]` | Search for enchanted books with the specified enchantment. | None |
 | `sf fuzzy-search <name> [-p <profile>]` | Fuzzy-search by name (uses the player's language locale). | None |
 | `sf setting` | Open the search-settings GUI for the currently active profile. | None |
-| `sf setting <profile>` | Open the settings GUI for `<profile>` (creates it if it does not exist). | None |
+| `sf setting <profile>` | Open the settings GUI for `<profile>` (creates it if it does not exist; up to 3 profiles). | None |
 | `sf setting list` | List all profiles (the active one is marked "(active)"). | None |
 | `sf setting use <profile>` | Switch the active profile. | None |
 | `sf setting delete <profile>` | Delete a profile (`default` cannot be deleted). | None |
@@ -65,7 +65,7 @@ Profiles are created, switched, and edited through `sf setting` (a GUI).
 Manages search profiles (named sets of search options such as sort order and result limits) through a GUI.
 
 - `sf setting` — Opens the search-settings GUI for the currently active profile.
-- `sf setting <profile>` — Opens the GUI for `<profile>`, creating it if it does not exist.
+- `sf setting <profile>` — Opens the GUI for `<profile>`, creating it if it does not exist (up to 3 profiles, including `default`).
 - `sf setting list` — Lists all profiles. The active profile is marked "(active)".
 - `sf setting use <profile>` — Switches the active profile.
 - `sf setting delete <profile>` — Deletes a profile. `default` cannot be deleted. If you delete the active profile, the active profile reverts to `default`.

@@ -7,7 +7,7 @@ description: Manage search behavior as profiles and switch between them via a GU
 
 A search profile is a named set of options that control how a search behaves — sort order, result limits, stock visibility, and more. You can create several profiles and switch between them depending on what you are doing.
 
-- Each player can have multiple profiles. A `default` profile is available from the start.
+- Each player can have up to 3 profiles (including `default`). A `default` profile is available from the start.
 - The profile that is currently "active" is applied automatically to normal searches.
 - For an individual search you can temporarily use a different profile with the `-p <profile>` flag (this does not change your active profile).
 
@@ -23,8 +23,8 @@ Running `/sf setting` opens the settings GUI (a chest inventory) for your curren
 
 | Control | Action |
 | --- | --- |
-| Buy-shop sort order (priority list) | Per slot: left = change type / right = remove / shift-left = move up / shift-right = move down. Green "+" adds a criterion |
-| Sell-shop sort order (priority list) | Same. The leftmost is the primary key; ties are broken by the next criterion (multi-level sort) |
+| Buy-shop sort order | The four criteria (price per item, distance, nearest town, price per stack) are always shown. Per slot: left = enable / disable, right = ascending / descending, shift-left = move left, shift-right = move right |
+| Sell-shop sort order | Same. Among enabled criteria the leftmost is the primary key; ties are broken by the next one (multi-level sort) |
 | Buy-shop result limit (buyFindLimit) | Left-click +1 / right-click −1 / Shift-click for unlimited |
 | Sell-shop result limit (sellFindLimit) | Left-click +1 / right-click −1 / Shift-click for unlimited |
 | Show out-of-stock shops (showNoStockShop) | Click to toggle ON / OFF |
@@ -48,7 +48,7 @@ Players can manage their own profiles entirely on their own (no permission requi
 | Command | Description |
 | --- | --- |
 | `sf setting` | Opens the settings GUI for your currently active profile. |
-| `sf setting <profile>` | Opens the settings GUI for `<profile>`, creating it if it does not exist. |
+| `sf setting <profile>` | Opens the settings GUI for `<profile>`, creating it if it does not exist (up to 3 profiles). |
 | `sf setting list` | Lists all profiles. The active profile is marked as "(active)". |
 | `sf setting use <profile>` | Switches your active profile. |
 | `sf setting delete <profile>` | Deletes a profile. `default` cannot be deleted. If you delete the active profile, it reverts to `default`. |
