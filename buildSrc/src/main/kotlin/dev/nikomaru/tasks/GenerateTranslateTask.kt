@@ -5,7 +5,6 @@ import com.google.gson.JsonObject
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-import org.bukkit.NamespacedKey
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.net.URI
@@ -30,7 +29,7 @@ open class GenerateTranslateTask : DefaultTask() {
         val gson = Gson()
 
 //        val version = gson.fromJson(data, JsonObject::class.java).get("latest").asJsonObject.get("release").asString
-        val version = "1.21.11"
+        val version = "26.3"
         println("latestVersion: $version")
 
 
@@ -59,14 +58,8 @@ open class GenerateTranslateTask : DefaultTask() {
                 translateMap += t.toString() to u.toString().replace(" ","_")
             }
 
-            val translateMap2 = translateMap.map { (k, v) ->
-                try {
-                    NamespacedKey.minecraft(k)
-                } catch (e: Exception) {
-                    println("error: $k, $v")
-                }
-                Pair(NamespacedKey.minecraft(k), v)
-            }.toMap()
+            // 実行時の NamespacedKey.minecraft(key) と同じ "minecraft:<key>" 形式で出力する
+            val translateMap2 = translateMap.mapKeys { (k, _) -> "minecraft:$k" }
 
             val json = Json {
                 prettyPrint = true
@@ -75,7 +68,7 @@ open class GenerateTranslateTask : DefaultTask() {
                 ignoreUnknownKeys = true
             }
 
-            val output = json.encodeToString(MapSerializer(NamespacedKeySerializer, String.serializer()), translateMap2)
+            val output = json.encodeToString(MapSerializer(String.serializer(), String.serializer()), translateMap2)
 
             val outputFile = resourceDir.resolve("$lang.json").toFile()
             outputFile.parentFile.mkdirs()

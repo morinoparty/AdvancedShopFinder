@@ -98,11 +98,11 @@ tasks {
         )
     }
     runServer {
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.3")
         downloadPlugins {
-            modrinth("quickshop-hikari", "6.2.0.11")
-            github("dmulloy2", "ProtocolLib", "5.4.0", "ProtocolLib.jar")
-            url("https://cdn.modrinth.com/data/hXiIvTyT/versions/Oa9ZDzZq/EssentialsX-2.21.2.jar")
+            modrinth("quickshop-hikari", "6.3.0.3")
+            github("dmulloy2", "ProtocolLib", "dev-build", "ProtocolLib.jar")
+            url("https://cdn.modrinth.com/data/hXiIvTyT/versions/nY6VN1XH/EssentialsX-2.22.0.jar")
             github("Milkbowl", "Vault", "1.7.3", "Vault.jar")
         }
     }
