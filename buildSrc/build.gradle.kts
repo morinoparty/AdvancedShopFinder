@@ -28,7 +28,7 @@ dependencies {
     implementation(localGroovy())
     implementation(libs.kotlinx.serialization.json)
     implementation("com.google.code.gson:gson:2.14.0")
-    compileOnly(libs.paper.api)
+    implementation(libs.paper.api)
     implementation(libs.mock.bukkit)
 
 }
