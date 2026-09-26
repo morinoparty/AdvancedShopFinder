@@ -26,6 +26,12 @@ object PlayerFindOptionUtils : KoinComponent {
     /** default プロファイルは常に存在し、削除できない。 */
     const val DEFAULT_PROFILE: String = "default"
 
+    /** 1 プレイヤーが持てるプロファイル数の上限（default を含む）。 */
+    const val MAX_PROFILES: Int = 3
+
+    /** [createProfile] の結果。 */
+    enum class CreateProfileResult { CREATED, ALREADY_EXISTS, LIMIT_REACHED }
+
     /**
      * プレイヤーごとの設定ファイルへの load-modify-save を直列化するためのロック。
      * これが無いと、GUI の「使用中に設定」と「保存」を素早く連続クリックした際などに、
@@ -98,31 +104,40 @@ object PlayerFindOptionUtils : KoinComponent {
         }
 
     /**
-     * 新しいプロファイルを作成する。既に存在する場合は何もせず false を返す。
+     * 新しいプロファイルを作成する。既に存在する場合や上限 [MAX_PROFILES] に達している場合は何もしない。
      */
     suspend fun Player.createProfile(
         profileName: String,
         base: FindOption = FindOption(),
-    ): Boolean =
+    ): CreateProfileResult =
         lock().withLock {
             val config = loadPlayerFindOption()
-            if (config.findOptions.containsKey(profileName)) return@withLock false
-            val newOptions = HashMap(config.findOptions).apply { put(profileName, base) }
-            savePlayerFindOption(config.copy(findOptions = newOptions))
-            true
+            when {
+                config.findOptions.containsKey(profileName) -> CreateProfileResult.ALREADY_EXISTS
+                config.findOptions.size >= MAX_PROFILES -> CreateProfileResult.LIMIT_REACHED
+                else -> {
+                    val newOptions = HashMap(config.findOptions).apply { put(profileName, base) }
+                    savePlayerFindOption(config.copy(findOptions = newOptions))
+                    CreateProfileResult.CREATED
+                }
+            }
         }
 
     /**
      * プロファイルを新規作成または上書き保存する。
+     * 新規作成になる場合に上限 [MAX_PROFILES] に達していれば保存せず false を返す。
      */
     suspend fun Player.upsertProfile(
         profileName: String,
         option: FindOption,
-    ): Unit =
+    ): Boolean =
         lock().withLock {
             val config = loadPlayerFindOption()
+            val isNew = !config.findOptions.containsKey(profileName)
+            if (isNew && config.findOptions.size >= MAX_PROFILES) return@withLock false
             val newOptions = HashMap(config.findOptions).apply { put(profileName, option) }
             savePlayerFindOption(config.copy(findOptions = newOptions))
+            true
         }
 
     /**

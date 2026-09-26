@@ -9,7 +9,10 @@ import dev.nikomaru.advancedshopfinder.AdvancedShopFinder
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
 import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.setActiveProfile
 import dev.nikomaru.advancedshopfinder.utils.data.PlayerFindOptionUtils.upsertProfile
-import dev.nikomaru.advancedshopfinder.utils.data.SortType
+import dev.nikomaru.advancedshopfinder.utils.data.SortCriterion
+import dev.nikomaru.advancedshopfinder.utils.data.SortEntry
+import dev.nikomaru.advancedshopfinder.utils.data.toSortEntries
+import dev.nikomaru.advancedshopfinder.utils.data.toSortTypes
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -23,7 +26,8 @@ import org.koin.core.component.inject
 /**
  * 検索オプション（プロファイル）をインベントリ GUI で編集する画面。
  *
- * 並び順は単一ではなく「優先順位リスト」として編集でき、先頭が第一ソート基準になる。
+ * 並び順は 4 つの基準（アイテム単価・距離・最寄りの町・スタック単価）を常に並べ、
+ * それぞれの有効/無効・昇順/降順・左右の位置（左ほど優先）を切り替えて編集する。
  * クリックで並び順・件数上限・表示フラグを変更し、保存ボタンで永続化する。
  */
 class FindOptionGui(
@@ -35,13 +39,17 @@ class FindOptionGui(
 
     private var option: FindOption = initial
 
+    // 並び順の編集状態。全基準を 1 つずつ持ち、保存時に有効なものだけを優先順リストへ戻す
+    private var buyEntries: List<SortEntry> = initial.sortOption.buySortTypes.toSortEntries()
+    private var sellEntries: List<SortEntry> = initial.sortOption.sellSortTypes.toSortEntries()
+
     private val gui = ChestGui(6, "検索設定: $profileName")
     private val pane = StaticPane(9, 6)
 
     private val buyLabelItem = GuiItem(ItemStack(Material.PAPER)) { it.isCancelled = true }
     private val sellLabelItem = GuiItem(ItemStack(Material.PAPER)) { it.isCancelled = true }
 
-    // 並び順の優先度スロット（買取・販売それぞれ MAX_SORT 個ずつ常設し、内容を再描画で切り替える）
+    // 並び順の基準スロット（買取・販売それぞれ基準の数だけ常設し、内容を再描画で切り替える）
     private val buySortSlots = createSortSlots(buy = true)
     private val sellSortSlots = createSortSlots(buy = false)
 
@@ -76,10 +84,20 @@ class FindOptionGui(
     }
     private val saveItem = GuiItem(ItemStack(Material.LIME_CONCRETE)) { event ->
         event.isCancelled = true
-        val snapshot = option
+        val snapshot =
+            option.copy(
+                sortOption =
+                    option.sortOption.copy(
+                        buySortTypes = buyEntries.toSortTypes(),
+                        sellSortTypes = sellEntries.toSortTypes(),
+                    ),
+            )
         plugin.launch {
-            player.upsertProfile(profileName, snapshot)
-            player.sendRichMessage("<green>プロファイル '$profileName' を保存しました。")
+            if (player.upsertProfile(profileName, snapshot)) {
+                player.sendRichMessage("<green>プロファイル '$profileName' を保存しました。")
+            } else {
+                player.sendRichMessage("<red>プロファイル数が上限に達しているため '$profileName' を保存できませんでした。")
+            }
         }
         player.closeInventory()
     }
@@ -111,7 +129,7 @@ class FindOptionGui(
     }
 
     private fun createSortSlots(buy: Boolean): List<GuiItem> =
-        (0 until MAX_SORT).map { index ->
+        SortCriterion.entries.indices.map { index ->
             GuiItem(ItemStack(Material.GRAY_STAINED_GLASS_PANE)) { event ->
                 event.isCancelled = true
                 onSortSlotClick(buy, index, event.click)
@@ -119,18 +137,13 @@ class FindOptionGui(
             }
         }
 
-    private fun sortList(buy: Boolean): List<SortType> =
-        if (buy) option.sortOption.buySortTypes else option.sortOption.sellSortTypes
+    private fun entries(buy: Boolean): List<SortEntry> = if (buy) buyEntries else sellEntries
 
-    private fun setSortList(
+    private fun setEntries(
         buy: Boolean,
-        list: List<SortType>,
+        list: List<SortEntry>,
     ) {
-        val sort = option.sortOption
-        option =
-            option.copy(
-                sortOption = if (buy) sort.copy(buySortTypes = list) else sort.copy(sellSortTypes = list),
-            )
+        if (buy) buyEntries = list else sellEntries = list
     }
 
     private fun onSortSlotClick(
@@ -138,26 +151,19 @@ class FindOptionGui(
         index: Int,
         click: ClickType,
     ) {
-        val list = sortList(buy)
-        when {
-            index < list.size -> {
-                val mutable = list.toMutableList()
-                when (click) {
-                    ClickType.LEFT -> mutable[index] = mutable[index].next()
-                    ClickType.RIGHT -> mutable.removeAt(index)
-                    ClickType.SHIFT_LEFT -> if (index > 0) mutable.swap(index, index - 1)
-                    ClickType.SHIFT_RIGHT -> if (index < mutable.size - 1) mutable.swap(index, index + 1)
-                    else -> return
-                }
-                setSortList(buy, mutable)
-            }
-            index == list.size && list.size < MAX_SORT ->
-                if (click == ClickType.LEFT) setSortList(buy, list + SortType.entries.first())
-            else -> {}
+        val mutable = entries(buy).toMutableList()
+        val entry = mutable[index]
+        when (click) {
+            ClickType.LEFT -> mutable[index] = entry.copy(enabled = !entry.enabled)
+            ClickType.RIGHT -> mutable[index] = entry.copy(descending = !entry.descending)
+            ClickType.SHIFT_LEFT -> if (index > 0) mutable.swap(index, index - 1)
+            ClickType.SHIFT_RIGHT -> if (index < mutable.size - 1) mutable.swap(index, index + 1)
+            else -> return
         }
+        setEntries(buy, mutable)
     }
 
-    private fun MutableList<SortType>.swap(
+    private fun MutableList<SortEntry>.swap(
         a: Int,
         b: Int,
     ) {
@@ -169,8 +175,8 @@ class FindOptionGui(
     private fun redraw() {
         val limit = option.limitAmountOption
 
-        buyLabelItem.item = icon(Material.PAPER, "<gold>買取ショップの並び順", "<gray>優先度の高い順（左が最優先）")
-        sellLabelItem.item = icon(Material.PAPER, "<green>販売ショップの並び順", "<gray>優先度の高い順（左が最優先）")
+        buyLabelItem.item = icon(Material.PAPER, "<gold>買取ショップの並び順", "<gray>有効な基準を左から優先して比較")
+        sellLabelItem.item = icon(Material.PAPER, "<green>販売ショップの並び順", "<gray>有効な基準を左から優先して比較")
         renderSortSlots(buy = true, slots = buySortSlots)
         renderSortSlots(buy = false, slots = sellSortSlots)
 
@@ -224,34 +230,46 @@ class FindOptionGui(
         buy: Boolean,
         slots: List<GuiItem>,
     ) {
-        val list = sortList(buy)
+        val list = entries(buy)
+        var priority = 0
         slots.forEachIndexed { i, guiItem ->
+            val entry = list[i]
+            val criterion = entry.criterion
+            val direction = if (entry.descending) criterion.descLabel else criterion.ascLabel
+            val controls =
+                arrayOf(
+                    "",
+                    "<yellow>左: 有効/無効 / 右: ${criterion.ascLabel}/${criterion.descLabel}",
+                    "<yellow>Shift左: 左へ / Shift右: 右へ",
+                )
             guiItem.item =
-                when {
-                    i < list.size -> {
-                        val type = list[i]
-                        icon(
-                            sortMaterial(type),
-                            "<white>優先度 ${i + 1}: <yellow>${type.label}",
-                            "<gray>${type.description}",
-                            "",
-                            "<yellow>左: 種類変更 / 右: 削除",
-                            "<yellow>Shift左: 上へ / Shift右: 下へ",
-                            amount = i + 1,
-                        )
-                    }
-                    i == list.size && list.size < MAX_SORT ->
-                        icon(Material.LIME_DYE, "<green>+ 並び順を追加", "<yellow>左クリックで基準を追加")
-                    else -> icon(Material.GRAY_STAINED_GLASS_PANE, " ")
+                if (entry.enabled) {
+                    priority++
+                    icon(
+                        sortMaterial(criterion),
+                        "<white>優先度 $priority: <yellow>${criterion.label} $direction",
+                        "<gray>${entry.toSortType().description}",
+                        *controls,
+                        amount = priority,
+                        glint = true,
+                    )
+                } else {
+                    icon(
+                        sortMaterial(criterion),
+                        "<dark_gray>無効: <gray>${criterion.label} $direction",
+                        "<gray>左クリックで有効にします",
+                        *controls,
+                    )
                 }
         }
     }
 
-    private fun sortMaterial(type: SortType): Material =
-        when {
-            type.name.contains("PRICE") -> Material.GOLD_INGOT
-            type.name.contains("NEAREST") -> Material.LODESTONE
-            else -> Material.COMPASS
+    private fun sortMaterial(criterion: SortCriterion): Material =
+        when (criterion) {
+            SortCriterion.PRICE_PER_ITEM -> Material.GOLD_NUGGET
+            SortCriterion.PRICE_PER_STACK -> Material.GOLD_INGOT
+            SortCriterion.DISTANCE -> Material.COMPASS
+            SortCriterion.DISTANCE_NEAREST -> Material.LODESTONE
         }
 
     private fun nextLimit(
@@ -273,11 +291,13 @@ class FindOptionGui(
         name: String,
         vararg lore: String,
         amount: Int = 1,
+        glint: Boolean = false,
     ): ItemStack {
         val mm = MiniMessage.miniMessage()
         return ItemStack(material, amount).apply {
             editMeta { meta ->
                 meta.displayName(mm.deserialize(name).decoration(TextDecoration.ITALIC, false))
+                if (glint) meta.setEnchantmentGlintOverride(true)
                 if (lore.isNotEmpty()) {
                     meta.lore(
                         lore.map { line ->
@@ -291,10 +311,5 @@ class FindOptionGui(
                 }
             }
         }
-    }
-
-    companion object {
-        /** 各方向で設定できる並び順基準の最大数。 */
-        private const val MAX_SORT = 5
     }
 }

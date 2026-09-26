@@ -82,7 +82,7 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
 | `DESC_DISTANCE_NEAREST` | 最寄りの拠点が遠い順 |
 
 :::tip 多段ソートの例
-`"sellSortTypes": ["ASC_DISTANCE", "ASC_PRICE_PER_ITEM"]` とすると、まず距離が近い順に並び、距離が同じショップはアイテム単価が安い順に並びます。GUI（`/sf setting`）では優先度スロットを Shift クリックで上下に並べ替えできます。
+`"sellSortTypes": ["ASC_DISTANCE", "ASC_PRICE_PER_ITEM"]` とすると、まず距離が近い順に並び、距離が同じショップはアイテム単価が安い順に並びます。GUI（`/sf setting`）では 4 つの基準が常に並んでおり、各基準の有効/無効と昇順/降順を切り替え、Shift クリックで左右に並べ替えて優先度を決めます。有効な基準だけが左から順にこのリストへ保存されます。
 :::
 
 :::note

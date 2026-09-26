@@ -13,10 +13,4 @@ enum class SortType(
     ASC_DISTANCE_NEAREST("最寄り拠点 近い順", "最寄りの拠点が近い順に並び替えを行います"),
     DESC_DISTANCE_NEAREST("最寄り拠点 遠い順", "最寄りの拠点が遠い順に並び替えを行います"),
     ;
-
-    /** 次の並び順（末尾なら先頭へ循環）。GUI でのクリック切り替えに使う。 */
-    fun next(): SortType = entries[(ordinal + 1) % entries.size]
-
-    /** 前の並び順（先頭なら末尾へ循環）。 */
-    fun previous(): SortType = entries[(ordinal - 1 + entries.size) % entries.size]
 }
