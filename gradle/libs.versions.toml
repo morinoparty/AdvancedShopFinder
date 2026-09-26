@@ -1,6 +1,6 @@
 [versions]
 paper = "26.3-rc-3.build.1-alpha"
-mccoroutine = "2.22.0"
+mccoroutine = "2.23.0"
 cloud = "2.1.0"
 cloudPaper = "2.1.0-SNAPSHOT"
 coroutine = "1.11.0"
