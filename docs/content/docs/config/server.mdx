@@ -16,21 +16,25 @@ Advanced Shop Finder のサーバー設定は `plugins/AdvancedShopFinder/config
 | `placeData` | 地点のリスト | もりもと (1 件) | 最寄りの町（near-town）を算出するための基準地点。 |
 | `fuzzySearchLimit` | 整数 | `50` | あいまい検索で取得する件数の上限。あいまい検索は多数ヒットするため、この値で件数を制限します。 |
 | `format` | 文字列 (MiniMessage) | 下記参照 | 検索結果 1 件の表示フォーマット。 |
+| `formatWithoutNearTown` | 文字列 (MiniMessage) | 下記参照 | ショップと同じワールドに `placeData` の地点が無い場合の表示フォーマット。 |
 
 ### placeData
 
-`placeData` は地点エントリのリストです。各エントリは次の 3 つのフィールドのみを持ちます。
+`placeData` は地点エントリのリストです。各エントリは次のフィールドを持ちます。
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `x` | 整数 | 地点の X 座標。 |
-| `z` | 整数 | 地点の Z 座標。 |
-| `placeName` | 文字列 | 地点の名前。MiniMessage 形式に対応。 |
+| フィールド | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `x` | 整数 | - | 地点の X 座標。 |
+| `z` | 整数 | - | 地点の Z 座標。 |
+| `placeName` | 文字列 | - | 地点の名前。MiniMessage 形式に対応。 |
+| `world` | 文字列 | `"world"` | 地点があるワールド名。 |
 
 ここに登録した地点をもとに、各ショップの最寄りの町（near-town）とその距離が算出されます。
 
 :::note
-`placeData` のエントリに `world`（ワールド）フィールドはありません。地点は `x` / `z` / `placeName` の 3 つだけで指定します。
+最寄りの町は**ショップと同じワールドにある地点の中から**選ばれます。たとえばエンド（`world_the_end`）のショップは、`world` が `world_the_end` の地点がひとつも登録されていなければ最寄りの町を持ちません。この場合は `format` の代わりに `formatWithoutNearTown` が使われ、最寄りの町は表示されません。
+
+`world` を省略した既存の `config.json` はそのまま読み込め、その地点はオーバーワールド（`"world"`）の地点として扱われます。
 :::
 
 ## デフォルトの config.json
@@ -41,11 +45,13 @@ Advanced Shop Finder のサーバー設定は `plugins/AdvancedShopFinder/config
     {
       "x": -532,
       "z": -85,
-      "placeName": "もりもと"
+      "placeName": "もりもと",
+      "world": "world"
     }
   ],
   "fuzzySearchLimit": 50,
-  "format": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック 最寄り: <near-town>から<green><near-town-distance></green>ブロック"
+  "format": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック 最寄り: <near-town>から<green><near-town-distance></green>ブロック",
+  "formatWithoutNearTown": "<shop-type>: オーナー:<green><player-name></green> 値段: <green><price>/<shop-stacking-amount></green>個 在庫: <green><count></green> \n座標: <yellow><world></yellow> x:<blue><x></blue> y:<blue><y></blue> z:<blue><z></blue> 距離: <green><distance></green>ブロック"
 }
 ```
 
@@ -67,6 +73,8 @@ Advanced Shop Finder のサーバー設定は `plugins/AdvancedShopFinder/config
 | `<x>` | ショップの X 座標。 |
 | `<y>` | ショップの Y 座標。 |
 | `<z>` | ショップの Z 座標。 |
+
+`<near-town>` と `<near-town-distance>` は、ショップと同じワールドの地点が存在する場合のみ差し込まれます。`formatWithoutNearTown` ではこの 2 つは利用できません（残しても置換されずそのまま表示されます）。
 
 ## 設定の反映
 
