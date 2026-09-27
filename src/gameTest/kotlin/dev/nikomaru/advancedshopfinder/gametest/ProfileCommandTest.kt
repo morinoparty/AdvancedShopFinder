@@ -43,6 +43,8 @@ class ProfileCommandTest {
         alice.pressKey(KeySym.ESCAPE)
 
         env.server.assertNoLog(ShopFinderServer.COMMAND_ERRORS, after = mark)
+        // プロファイルの補完は入力中に非同期で何度も呼ばれるので、読み込みの例外が出ていないことも確かめる
+        env.server.assertNoLog(ShopFinderServer.PLUGIN_STACKTRACE, after = mark)
         alice.assertNoChat(ShopFinderServer.CHAT_ERRORS, after = chatMark)
     }
 

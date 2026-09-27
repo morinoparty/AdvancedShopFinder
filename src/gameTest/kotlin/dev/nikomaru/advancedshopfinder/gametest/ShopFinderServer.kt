@@ -54,5 +54,8 @@ class ShopFinderServer : GameServerExtension() {
 
         /** コマンドを受け付けなかったときにチャットへ出る文言（cloud の構文エラーと Minecraft の不明なコマンド）。 */
         val CHAT_ERRORS = Regex("(Invalid command syntax|Unknown or incomplete command|Unknown command)")
+
+        /** AdvancedShopFinder のコードを含むスタックトレース（タブ補完やパケット送信の例外なども拾う）。 */
+        val PLUGIN_STACKTRACE = Regex("at .*dev\\.nikomaru\\.advancedshopfinder\\.")
     }
 }
