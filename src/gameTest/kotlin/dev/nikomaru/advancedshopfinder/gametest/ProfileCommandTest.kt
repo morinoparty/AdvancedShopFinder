@@ -19,6 +19,7 @@ class ProfileCommandTest {
     suspend fun `setting-use-switches-profile`(env: ShopFinderServer) {
         val alice = env.alice
         val mark = env.server.mark()
+        val chatMark = alice.mark()
 
         // プロファイルを作る（作成と同時に GUI が開くので閉じてからチャットを使う）
         alice.sendCommand("sf setting mining")
@@ -35,9 +36,14 @@ class ProfileCommandTest {
         alice.typeText("/sf setting use ")
         pause(1.5.seconds)
         alice.screenshot("completion-profiles")
+        // 1 回目の Escape は補完候補を閉じるだけなので、もう 1 回押してチャット欄を閉じる
+        // （開いたままだと次のテストの入力が書き足されて別のコマンドになる）
+        alice.pressKey(KeySym.ESCAPE)
+        pause(0.5.seconds)
         alice.pressKey(KeySym.ESCAPE)
 
         env.server.assertNoLog(ShopFinderServer.COMMAND_ERRORS, after = mark)
+        alice.assertNoChat(ShopFinderServer.CHAT_ERRORS, after = chatMark)
     }
 
     /** 使用するプロファイルを切り替え、一覧で使用中の印がそのプロファイルに付くことを確かめる。 */

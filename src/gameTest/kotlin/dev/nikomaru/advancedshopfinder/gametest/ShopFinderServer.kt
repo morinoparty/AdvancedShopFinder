@@ -51,5 +51,8 @@ class ShopFinderServer : GameServerExtension() {
 
         /** コマンドの処理中に例外が出たときのログ（cloud の "Exception executing command handler" など）。 */
         val COMMAND_ERRORS = Regex("(Exception executing command handler|ArrayIndexOutOfBoundsException)")
+
+        /** コマンドを受け付けなかったときにチャットへ出る文言（cloud の構文エラーと Minecraft の不明なコマンド）。 */
+        val CHAT_ERRORS = Regex("(Invalid command syntax|Unknown or incomplete command|Unknown command)")
     }
 }
