@@ -11,17 +11,17 @@ import org.junit.jupiter.api.Test
 class ShopStockTest {
     @Test
     fun unknownAndUnlimitedShopsAreAlwaysShown() {
-        // チャンクが読み込まれていないショップ（在庫不明）を在庫切れとして落とさない
+        // 在庫が分からないショップを在庫切れとして落とさない
         assertTrue(ShopStock.Unknown.isVisible(showNoStockShop = false))
         assertTrue(ShopStock.Unlimited.isVisible(showNoStockShop = false))
     }
 
     @Test
     fun outOfStockShopsFollowTheProfileSetting() {
-        val empty = ShopStock.Counted(amount = 0, cached = false)
+        val empty = ShopStock.Counted(amount = 0)
         assertFalse(empty.isVisible(showNoStockShop = false))
         assertTrue(empty.isVisible(showNoStockShop = true))
-        assertTrue(ShopStock.Counted(amount = 3, cached = true).isVisible(showNoStockShop = false))
+        assertTrue(ShopStock.Counted(amount = 3).isVisible(showNoStockShop = false))
     }
 
     @Test
