@@ -12,6 +12,8 @@ import org.bukkit.entity.Player
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -48,17 +50,21 @@ object PlayerFindOptionUtils : KoinComponent {
             .resolve("config.json")
 
     /**
-     * プレイヤーの [PlayerFindOption] 全体を読み込む。ファイルが無ければデフォルトを生成する。
+     * プレイヤーの [PlayerFindOption] 全体を読み込む。ファイルが無い・空の場合はデフォルトを返す（ファイルも作る）。
+     *
+     * タブ補完などから並行して呼ばれるため、書き込みは [writeAtomically] で行い、読み込み側が
+     * 書きかけ・空のファイルを見ないようにしている。
      */
     suspend fun Player.loadPlayerFindOption(): PlayerFindOption =
         withContext(Dispatchers.IO) {
             val file = configFile()
-            if (!file.exists()) {
-                file.parentFile.mkdirs()
-                file.createNewFile()
-                file.writeText(json.encodeToString(PlayerFindOption()))
+            val text = if (file.exists()) file.readText() else ""
+            if (text.isBlank()) {
+                // 以前の版では作成途中の空ファイルが残ることがあったので、空もデフォルトとして扱う
+                PlayerFindOption().also { file.writeAtomically(json.encodeToString(it)) }
+            } else {
+                json.decodeFromString<PlayerFindOption>(text)
             }
-            json.decodeFromString<PlayerFindOption>(file.readText())
         }
 
     /**
@@ -66,11 +72,20 @@ object PlayerFindOptionUtils : KoinComponent {
      */
     suspend fun Player.savePlayerFindOption(option: PlayerFindOption): Unit =
         withContext(Dispatchers.IO) {
-            val file = configFile()
-            file.parentFile.mkdirs()
-            if (!file.exists()) file.createNewFile()
-            file.writeText(json.encodeToString(option))
+            configFile().writeAtomically(json.encodeToString(option))
         }
+
+    /** 同じディレクトリの一時ファイルに書いてから置き換え、読み込み側に書きかけの内容を見せない。 */
+    private fun File.writeAtomically(text: String) {
+        parentFile.mkdirs()
+        val temp = File.createTempFile("$name.", ".tmp", parentFile)
+        try {
+            temp.writeText(text)
+            Files.move(temp.toPath(), toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        } finally {
+            temp.delete()
+        }
+    }
 
     /**
      * 現在使用中（`setting`）のプロファイルの [FindOption] を返す。

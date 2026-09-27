@@ -1,6 +1,7 @@
 package dev.nikomaru.advancedshopfinder.commands
 
 import com.ghostchu.quickshop.api.QuickShopAPI
+import dev.nikomaru.advancedshopfinder.commands.utils.ProfileSuggestions
 import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import dev.nikomaru.advancedshopfinder.files.server.ConfigData
 import dev.nikomaru.advancedshopfinder.utils.translate.TranslateManager
@@ -25,7 +26,7 @@ object FuzzySearchCommand : KoinComponent {
     suspend fun fuzzySearch(
         sender: CommandSender,
         @Argument("name") name: String,
-        @Flag(value = "profile", aliases = ["p"]) profile: String?,
+        @Flag(value = "profile", aliases = ["p"], suggestions = ProfileSuggestions.PROFILES) profile: String?,
     ) {
         val options = resolveFindOption(sender, profile) ?: return
         val locale = if (sender is Player) sender.locale() else Locale.getDefault()

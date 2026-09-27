@@ -1,5 +1,6 @@
 package dev.nikomaru.advancedshopfinder.commands
 
+import dev.nikomaru.advancedshopfinder.commands.utils.ProfileSuggestions
 import dev.nikomaru.advancedshopfinder.gui.FindOptionGui
 import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
@@ -33,7 +34,7 @@ object SettingCommand : KoinComponent {
     @CommandDescription("指定プロファイルの検索設定GUIを開きます（無ければ作成）")
     suspend fun openProfile(
         sender: CommandSender,
-        @Argument("profile") profile: String,
+        @Argument("profile", suggestions = ProfileSuggestions.PROFILES) profile: String,
     ) {
         val player = sender.asPlayer() ?: return
         if (player.createProfile(profile) == CreateProfileResult.LIMIT_REACHED) {
@@ -61,7 +62,7 @@ object SettingCommand : KoinComponent {
     @CommandDescription("使用する検索プロファイルを切り替えます")
     suspend fun use(
         sender: CommandSender,
-        @Argument("profile") profile: String,
+        @Argument("profile", suggestions = ProfileSuggestions.PROFILES) profile: String,
     ) {
         val player = sender.asPlayer() ?: return
         if (player.setActiveProfile(profile)) {
@@ -75,7 +76,7 @@ object SettingCommand : KoinComponent {
     @CommandDescription("検索プロファイルを削除します")
     suspend fun delete(
         sender: CommandSender,
-        @Argument("profile") profile: String,
+        @Argument("profile", suggestions = ProfileSuggestions.PROFILES) profile: String,
     ) {
         val player = sender.asPlayer() ?: return
         if (player.deleteProfile(profile)) {

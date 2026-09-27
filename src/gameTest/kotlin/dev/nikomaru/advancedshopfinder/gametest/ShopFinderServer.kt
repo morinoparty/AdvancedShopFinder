@@ -8,6 +8,7 @@ import party.morino.fukurou.server.ServerSpec
 import party.morino.fukurou.server.ServerType
 import party.morino.fukurou.server.paper.Paper
 import party.morino.fukurou.server.paper.PaperChannel
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * AdvancedShopFinder と依存プラグイン（runServer と同じ構成）を入れたサーバー。
@@ -39,8 +40,9 @@ class ShopFinderServer : GameServerExtension() {
             dependency(PluginSource.githubRelease("MilkBowl/Vault", tag = "1.7.3", asset = "Vault.jar"))
             dependency(PluginSource.url(ESSENTIALS_URL))
         }
-        // ブロックは使わないので、リセットはプレイヤーの状態だけにする
-        isolation = Isolation.Reset(arena = null)
+        // ブロックは使わないので、リセットはプレイヤーの状態だけにする。
+        // 参加直後はクライアントがチャンクの描画で忙しく、チャットの入力を取りこぼすので長めに待つ
+        isolation = Isolation.Reset(arena = null, settle = 5.seconds)
     }
 
     companion object {
@@ -49,5 +51,11 @@ class ShopFinderServer : GameServerExtension() {
 
         /** コマンドの処理中に例外が出たときのログ（cloud の "Exception executing command handler" など）。 */
         val COMMAND_ERRORS = Regex("(Exception executing command handler|ArrayIndexOutOfBoundsException)")
+
+        /** コマンドを受け付けなかったときにチャットへ出る文言（cloud の構文エラーと Minecraft の不明なコマンド）。 */
+        val CHAT_ERRORS = Regex("(Invalid command syntax|Unknown or incomplete command|Unknown command)")
+
+        /** AdvancedShopFinder のコードを含むスタックトレース（タブ補完やパケット送信の例外なども拾う）。 */
+        val PLUGIN_STACKTRACE = Regex("at .*dev\\.nikomaru\\.advancedshopfinder\\.")
     }
 }

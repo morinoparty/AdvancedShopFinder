@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import party.morino.fukurou.pause
+import party.morino.fukurou.player.KeySym
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -19,11 +20,16 @@ class SettingGuiTest {
     @DisplayName("sf setting opens the find option GUI without errors")
     suspend fun `setting-gui-opens`(env: ShopFinderServer) {
         val mark = env.server.mark()
+        val chatMark = env.alice.mark()
         env.alice.sendCommand("sf setting")
         // コマンドは非同期で処理され、GUI はメインスレッドで開くので少し待つ
         pause(2.seconds)
         env.alice.screenshot("setting-gui")
         // InventoryFramework 0.12.1 のバグではここで ArrayIndexOutOfBoundsException が出ていた
         env.server.assertNoLog(ShopFinderServer.COMMAND_ERRORS, after = mark)
+        // サーバーログの待ち合わせは前方一致なので、別のコマンドとして解釈されていないこともチャットで確かめる
+        env.alice.assertNoChat(ShopFinderServer.CHAT_ERRORS, after = chatMark)
+        // 次のテストがチャットを使えるよう GUI を閉じる
+        env.alice.pressKey(KeySym.ESCAPE)
     }
 }
