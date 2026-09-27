@@ -33,8 +33,8 @@ class ShopFinderServer : GameServerExtension() {
         plugins {
             // gameTest タスクが shadowJar の成果物のパスを fukurou.plugin.advancedshopfinder に渡す
             underTest(PluginSource.systemProperty("advancedshopfinder"))
-            // plugin.yml の depend。dmulloy2 の Jenkins は 403 を返すため GitHub の開発版リリースから取得する
-            dependency(PluginSource.githubRelease("dmulloy2/ProtocolLib", tag = "dev-build", asset = "ProtocolLib.jar"))
+            // plugin.yml の depend（ショップを光らせるパケットの送信に使う）
+            dependency(PluginSource.url(PACKETEVENTS_URL))
             dependency(PluginSource.url(QUICKSHOP_URL))
             // QuickShop-Hikari の経済プロバイダ
             dependency(PluginSource.githubRelease("MilkBowl/Vault", tag = "1.7.3", asset = "Vault.jar"))
@@ -46,6 +46,7 @@ class ShopFinderServer : GameServerExtension() {
     }
 
     companion object {
+        const val PACKETEVENTS_URL = "https://cdn.modrinth.com/data/HYKaKraK/versions/m78nFxYg/packetevents-spigot-2.14.0.jar"
         const val QUICKSHOP_URL = "https://cdn.modrinth.com/data/ijC5dDkD/versions/OxlW1jL5/QuickShop-Hikari-6.3.0.3.jar"
         const val ESSENTIALS_URL = "https://cdn.modrinth.com/data/hXiIvTyT/versions/nY6VN1XH/EssentialsX-2.22.0.jar"
 

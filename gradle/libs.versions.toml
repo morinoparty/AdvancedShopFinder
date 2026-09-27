@@ -6,7 +6,7 @@ cloudPaper = "2.1.0-SNAPSHOT"
 coroutine = "1.11.0"
 serialization = "1.11.0"
 vault = "1.7.1"
-protocolLib = "5.4.0"
+packetEvents = "2.14.0"
 quickShop = "6.2.0.11"
 arrow = "2.2.3"
 koinVersion = "4.2.2"
@@ -30,7 +30,7 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 mccoroutine-bukkit-api = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-api", version.ref = "mccoroutine" }
 mccoroutine-bukkit-core = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-core", version.ref = "mccoroutine" }
 vault-api = { group = "com.github.MilkBowl", name = "VaultAPI", version.ref = "vault" }
-protocol-lib = { group = "net.dmulloy2", name = "ProtocolLib", version.ref = "protocolLib" }
+packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetEvents" }
 quickshop-bukkit = { group = "com.ghostchu", name = "quickshop-bukkit", version.ref = "quickShop" }
 quickshop-api = { group = "com.ghostchu", name = "quickshop-api", version.ref = "quickShop" }
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koinVersion" }

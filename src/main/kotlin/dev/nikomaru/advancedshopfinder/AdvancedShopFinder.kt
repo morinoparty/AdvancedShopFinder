@@ -1,7 +1,7 @@
 package dev.nikomaru.advancedshopfinder
 
-import com.comphenix.protocol.ProtocolLibrary
 import com.ghostchu.quickshop.api.QuickShopAPI
+import com.github.retrooper.packetevents.PacketEvents
 import dev.nikomaru.advancedshopfinder.commands.EnchantFindCommand
 import dev.nikomaru.advancedshopfinder.commands.FuzzySearchCommand
 import dev.nikomaru.advancedshopfinder.commands.HelpCommand
@@ -41,7 +41,7 @@ open class AdvancedShopFinder : JavaPlugin() {
                 module {
                     single { this@AdvancedShopFinder }
                     single { QuickShopAPI.getInstance() }
-                    single { ProtocolLibrary.getProtocolManager() }
+                    single { PacketEvents.getAPI().playerManager }
                     single<TranslateManager> { TranslateManagerImpl() }
                     single<Economy> {
                         server.servicesManager.getRegistration(Economy::class.java)?.provider

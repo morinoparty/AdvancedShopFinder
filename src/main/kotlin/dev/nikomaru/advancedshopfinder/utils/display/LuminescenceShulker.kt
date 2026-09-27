@@ -1,24 +1,31 @@
 package dev.nikomaru.advancedshopfinder.utils.display
 
-import com.comphenix.protocol.PacketType
-import com.comphenix.protocol.ProtocolManager
-import com.comphenix.protocol.events.PacketContainer
-import com.comphenix.protocol.wrappers.WrappedDataValue
-import com.comphenix.protocol.wrappers.WrappedDataWatcher
-import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject
+import com.github.retrooper.packetevents.manager.player.PlayerManager
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes
+import com.github.retrooper.packetevents.util.Vector3d
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity
 import dev.nikomaru.advancedshopfinder.utils.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.Location
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 import kotlin.random.Random
 
+/**
+ * ショップの位置に、発光（0x40）・透明（0x20）のシュルカーをパケットだけで表示して目立たせる。
+ *
+ * 実体のエンティティは作らず、対象のプレイヤーにだけ見える。
+ */
 class LuminescenceShulker : KoinComponent {
-    val protocolManager: ProtocolManager by inject()
+    private val playerManager: PlayerManager by inject()
     private val ids = arrayListOf<Int>()
     private val blocks = arrayListOf<Location>()
     private val target = arrayListOf<Player>()
@@ -37,37 +44,26 @@ class LuminescenceShulker : KoinComponent {
                 target.forEach {
                     val entityId = Random.nextInt(Int.MAX_VALUE)
                     ids.add(entityId)
-                    val shulkerPacket = PacketContainer(PacketType.Play.Server.SPAWN_ENTITY)
-                    shulkerPacket.integers.write(0, entityId)
-                    shulkerPacket.entityTypeModifier.write(0, EntityType.SHULKER)
-                    shulkerPacket.uuiDs.write(0, UUID.randomUUID())
-                    shulkerPacket.doubles
-                        .write(0, location.x)
-                        .write(1, location.y)
-                        .write(2, location.z)
-                    val byteSerializer = WrappedDataWatcher.Registry.get(java.lang.Byte::class.java)
-                    val shulkerEffectPacket = PacketContainer(PacketType.Play.Server.ENTITY_METADATA)
-                    shulkerEffectPacket.integers.write(0, entityId)
-                    val watcher = WrappedDataWatcher()
-                    watcher.setObject(
-                        WrappedDataWatcherObject(0, byteSerializer),
-                        0x60.toByte(),
-                    )
-                    val wrappedDataValueList: MutableList<WrappedDataValue> = arrayListOf()
-                    watcher.watchableObjects.stream().filter(Objects::nonNull).forEach { entry ->
-                        val dataWatcherObject: WrappedDataWatcherObject = entry.watcherObject
-                        wrappedDataValueList.add(
-                            WrappedDataValue(
-                                dataWatcherObject.index,
-                                dataWatcherObject.serializer,
-                                entry.rawValue,
-                            ),
+                    val spawnPacket =
+                        WrapperPlayServerSpawnEntity(
+                            entityId,
+                            Optional.of(UUID.randomUUID()),
+                            EntityTypes.SHULKER,
+                            Vector3d(location.x, location.y, location.z),
+                            0f,
+                            0f,
+                            0f,
+                            0,
+                            Optional.empty(),
                         )
-                    }
-                    shulkerEffectPacket.dataValueCollectionModifier.write(0, wrappedDataValueList)
-
-                    protocolManager.sendServerPacket(it, shulkerPacket)
-                    protocolManager.sendServerPacket(it, shulkerEffectPacket)
+                    // インデックス 0 はエンティティのフラグ。0x40 = 発光、0x20 = 透明
+                    val metadataPacket =
+                        WrapperPlayServerEntityMetadata(
+                            entityId,
+                            listOf<EntityData<*>>(EntityData(0, EntityDataTypes.BYTE, ENTITY_FLAGS)),
+                        )
+                    playerManager.sendPacket(it, spawnPacket)
+                    playerManager.sendPacket(it, metadataPacket)
                 }
             }
         }
@@ -75,12 +71,15 @@ class LuminescenceShulker : KoinComponent {
 
     suspend fun stop() {
         withContext(Dispatchers.async) {
+            val destroyPacket = WrapperPlayServerDestroyEntities(*ids.toIntArray())
             target.forEach {
-                val shulkerDeadPacket = PacketContainer(PacketType.Play.Server.ENTITY_DESTROY)
-                shulkerDeadPacket.intLists.write(0, ids)
-                protocolManager.sendServerPacket(it, shulkerDeadPacket)
+                playerManager.sendPacket(it, destroyPacket)
             }
             ids.clear()
         }
+    }
+
+    private companion object {
+        const val ENTITY_FLAGS: Byte = 0x60
     }
 }
