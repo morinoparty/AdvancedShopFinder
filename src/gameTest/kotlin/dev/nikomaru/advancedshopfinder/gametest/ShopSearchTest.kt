@@ -78,12 +78,14 @@ class ShopSearchTest {
     ) {
         val alice = env.alice
         env.server.fixture("$item-shop") {
-            setBlock(chest, "minecraft:chest")
-            // ショップの作成費用を払えるようにする（経済は EssentialsX）
-            command("eco give Alice 1000")
+            // 先にテレポートしてチャンクを読み込ませる（遠くの場所はそのままでは setblock できない）。
             // テレポートの pitch がクライアントの視点に反映されないことがあるので、チェストは目の高さ（足元 +1）に置いて水平に見る
             alice.teleport(Location(chest.x + 0.5, chest.y - 1.0, chest.z - 2.5, yaw = 0f, pitch = 0f))
             pause(3.seconds)
+            setBlock(chest, "minecraft:chest")
+            // ショップの作成費用を払えるようにする（経済は EssentialsX）
+            command("eco give Alice 1000")
+            pause(1.seconds)
         }
         alice.sendCommand("qs create 10 $item")
         pause(2.seconds)
