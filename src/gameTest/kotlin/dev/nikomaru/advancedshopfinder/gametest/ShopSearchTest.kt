@@ -1,5 +1,6 @@
 package dev.nikomaru.advancedshopfinder.gametest
 
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -37,6 +38,10 @@ class ShopSearchTest {
         // 在庫はショップを作った後に入れる（作成前に入れると在庫切れのショップになった）
         env.server.command("item replace block ${CHEST.toCommandArgs()} container.0 with minecraft:diamond 64")
         pause(1.seconds)
+        // 在庫が本当に入ったかをチェストの NBT で確かめる
+        val items = env.server.command("data get block ${CHEST.toCommandArgs()} Items").text.orEmpty()
+        println("chest items: $items")
+        assertTrue(items.contains("minecraft:diamond"), "chest has no diamonds: $items")
 
         alice.sendCommand("sf search diamond")
         alice.awaitChat(Regex("の検索結果: 1件"), timeout = 10.seconds, after = chatMark)
