@@ -26,7 +26,7 @@ class ShopSearchTest {
             command("item replace block ${CHEST.toCommandArgs()} container.0 with minecraft:diamond 64")
             // ショップの作成費用を払えるようにする（経済は EssentialsX）
             command("eco give Alice 1000")
-            alice.teleport(Location(0.5, -60.0, 0.5, yaw = 0f, pitch = 20f))
+            alice.teleport(Location(0.5, -60.0, 0.5, yaw = 0f, pitch = 0f))
             pause(2.seconds)
         }
         val mark = env.server.mark()
@@ -48,6 +48,7 @@ class ShopSearchTest {
     }
 
     private companion object {
-        val CHEST = BlockPos(0, -60, 3)
+        // テレポートの pitch がクライアントの視点に反映されないことがあるので、目の高さ（足元 +1）に置いて水平に見る
+        val CHEST = BlockPos(0, -59, 3)
     }
 }
