@@ -38,7 +38,7 @@ dependencies {
 
     compileOnly(libs.vault.api)
 
-    compileOnly(libs.protocol.lib)
+    compileOnly(libs.packetevents.spigot)
 
     compileOnly(libs.quickshop.bukkit)
     compileOnly(libs.quickshop.api)
@@ -102,7 +102,7 @@ tasks {
         minecraftVersion("26.3")
         downloadPlugins {
             modrinth("quickshop-hikari", "6.3.0.3")
-            github("dmulloy2", "ProtocolLib", "dev-build", "ProtocolLib.jar")
+            modrinth("packetevents", "2.14.0+spigot")
             url("https://cdn.modrinth.com/data/hXiIvTyT/versions/nY6VN1XH/EssentialsX-2.22.0.jar")
             github("Milkbowl", "Vault", "1.7.3", "Vault.jar")
         }
@@ -179,7 +179,7 @@ sourceSets.main {
             apiVersion = "1.20"
             libraries = libs.bundles.coroutines.asString() +
                 listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.20")
-            depend = listOf("QuickShop-Hikari", "ProtocolLib")
+            depend = listOf("QuickShop-Hikari", "packetevents")
         }
     }
 }

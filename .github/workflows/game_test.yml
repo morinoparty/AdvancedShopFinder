@@ -108,7 +108,7 @@ jobs:
 
       - name: Run the game tests
         env:
-          # github 形式の依存プラグイン（ProtocolLib dev-build, Vault）を GitHub API から取るときに使う
+          # github 形式の依存プラグイン（Vault）を GitHub API から取るときに使う
           GITHUB_TOKEN: ${{ github.token }}
           MINECRAFT_VERSION: ${{ matrix.minecraft-version }}
           PAPER_CHANNEL: ${{ inputs.paper-channel || 'alpha' }}
