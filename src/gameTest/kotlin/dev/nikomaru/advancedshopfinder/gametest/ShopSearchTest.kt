@@ -36,10 +36,10 @@ class ShopSearchTest {
         alice.sendCommand("qs create 10 diamond")
         pause(2.seconds)
         // 在庫はショップを作った後に入れる（作成前に入れると在庫切れのショップになった）
-        // setBlock と同じくディメンションを明示する（RCON の既定の実行位置では別の場所を指すことがある）
+        // EssentialsX が item コマンドを上書きしている（プレイヤー専用）ので、バニラの minecraft:item を明示する
         val filled =
             env.server.command(
-                "execute in minecraft:overworld run item replace block ${CHEST.toCommandArgs()} container.0 with minecraft:diamond 64",
+                "execute in minecraft:overworld run minecraft:item replace block ${CHEST.toCommandArgs()} container.0 with minecraft:diamond 64",
             )
         println("item replace: ${filled.text}")
         pause(1.seconds)
