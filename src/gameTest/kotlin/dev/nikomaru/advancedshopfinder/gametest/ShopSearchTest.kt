@@ -21,9 +21,8 @@ class ShopSearchTest {
     suspend fun `search-highlights-shop`(env: ShopFinderServer) {
         val alice = env.alice
         env.server.fixture("diamond-shop") {
-            // ダイヤを入れたチェストを置き、Alice にそのチェストを見させる
+            // チェストを置き、Alice にそのチェストを見させる
             setBlock(CHEST, "minecraft:chest")
-            command("item replace block ${CHEST.toCommandArgs()} container.0 with minecraft:diamond 64")
             // ショップの作成費用を払えるようにする（経済は EssentialsX）
             command("eco give Alice 1000")
             alice.teleport(Location(0.5, -60.0, 0.5, yaw = 0f, pitch = 0f))
@@ -35,6 +34,9 @@ class ShopSearchTest {
         // 見ているチェストを、1 個 10 のダイヤの販売ショップにする
         alice.sendCommand("qs create 10 diamond")
         pause(2.seconds)
+        // 在庫はショップを作った後に入れる（作成前に入れると在庫切れのショップになった）
+        env.server.command("item replace block ${CHEST.toCommandArgs()} container.0 with minecraft:diamond 64")
+        pause(1.seconds)
 
         alice.sendCommand("sf search diamond")
         alice.awaitChat(Regex("の検索結果: 1件"), timeout = 10.seconds, after = chatMark)
