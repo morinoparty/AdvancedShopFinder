@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import party.morino.fukurou.pause
+import party.morino.fukurou.player.KeySym
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -25,5 +26,7 @@ class SettingGuiTest {
         env.alice.screenshot("setting-gui")
         // InventoryFramework 0.12.1 のバグではここで ArrayIndexOutOfBoundsException が出ていた
         env.server.assertNoLog(ShopFinderServer.COMMAND_ERRORS, after = mark)
+        // 次のテストがチャットを使えるよう GUI を閉じる
+        env.alice.pressKey(KeySym.ESCAPE)
     }
 }

@@ -4,6 +4,7 @@ import com.ghostchu.quickshop.api.QuickShopAPI
 import com.ghostchu.quickshop.api.shop.Shop
 import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.advancedshopfinder.AdvancedShopFinder
+import dev.nikomaru.advancedshopfinder.commands.utils.ProfileSuggestions
 import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import dev.nikomaru.advancedshopfinder.files.server.ConfigData
 import dev.nikomaru.advancedshopfinder.files.server.PlaceData
@@ -12,6 +13,8 @@ import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
 import dev.nikomaru.advancedshopfinder.utils.data.SortType
 import dev.nikomaru.advancedshopfinder.utils.display.LuminescenceShulker
+import dev.nikomaru.advancedshopfinder.utils.shop.ShopStock
+import dev.nikomaru.advancedshopfinder.utils.shop.limitedTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -45,7 +48,7 @@ object ShopSearchCommand : KoinComponent {
     suspend fun searchItem(
         sender: CommandSender,
         @Argument("item") itemArray: Array<Material>,
-        @Flag(value = "profile", aliases = ["p"]) profile: String?,
+        @Flag(value = "profile", aliases = ["p"], suggestions = ProfileSuggestions.PROFILES) profile: String?,
     ) {
         val options = resolveFindOption(sender, profile) ?: return
         val shop = quickShop.shopManager.allShops.filter {
@@ -73,11 +76,11 @@ object ShopSearchCommand : KoinComponent {
     }
 
     suspend fun processShops(shop: List<Shop>, sender: CommandSender, message: Component, sum: Int, options: FindOption, buying: Boolean): Pair<Component, Int> {
-        var filteredShops = shop.filter {
-            it.isBuying == buying && (withContext(Dispatchers.minecraft) {
-                if (buying) it.remainingSpace else it.remainingStock
-            } > 0 || it.isUnlimited)
+        // 在庫・空き容量はショップごとに 1 回だけ求め、絞り込みと表示の両方で使う
+        val stocks = withContext(Dispatchers.minecraft) {
+            shop.filter { it.isBuying == buying }.associateWith { ShopStock.of(it, buying) }
         }
+        var filteredShops = stocks.filter { (_, stock) -> stock.isVisible(options.showNoStockShop) }.keys.toList()
         val sortTypes = if (buying) options.sortOption.buySortTypes else options.sortOption.sellSortTypes
         filteredShops = if (sender !is Player) {
             if (buying) filteredShops.sortedBy { it.price } else filteredShops.sortedByDescending { it.price }
@@ -89,11 +92,14 @@ object ShopSearchCommand : KoinComponent {
                     .reduceOrNull { acc, next -> acc.then(next) }
             if (comparator != null) filteredShops.sortedWith(comparator) else filteredShops
         }
+        // 並び替えた後に、プロファイルの件数上限で先頭から切り出す
+        val limit = if (buying) options.limitAmountOption.buyFindLimit else options.limitAmountOption.sellFindLimit
+        filteredShops = filteredShops.limitedTo(limit)
         var newMessage = message
         var newSum = sum
 
         filteredShops.forEach { shopChest ->
-            newMessage = newMessage.append(sendShopInfo(sender, shopChest))
+            newMessage = newMessage.append(sendShopInfo(sender, shopChest, stocks.getValue(shopChest)))
             newMessage = newMessage.append(Component.text("\n"))
             newSum++
         }
@@ -124,12 +130,12 @@ object ShopSearchCommand : KoinComponent {
         return Pair(newMessage, newSum)
     }
 
-    private suspend fun sendShopInfo(sender: CommandSender, shopChest: Shop): Component {
+    private fun sendShopInfo(sender: CommandSender, shopChest: Shop, stock: ShopStock): Component {
         val nearPlace = getNearPlace(shopChest)
         val nearTownDistance = nearPlace?.let { getPlaceDistance(it, shopChest) }
         val playerLocation = if (sender is Player) sender.location else Location(Bukkit.getWorld("world"), 0.0, 0.0, 0.0)
         val distance = getPlayerDistance(playerLocation, shopChest)
-        val count = if (shopChest.isBuying) getBuyingShopCount(shopChest) else getSellingShopCount(shopChest)
+        val count = formatStock(stock, shopChest.shopStackingAmount)
         val tags = getTags(shopChest, count, distance, nearPlace, nearTownDistance)
         val item = shopChest.item
         val mm = MiniMessage.miniMessage()
@@ -177,27 +183,17 @@ object ShopSearchCommand : KoinComponent {
         return tags.toTypedArray()
     }
 
-    private suspend fun getSellingShopCount(shopChest: Shop) = withContext(Dispatchers.minecraft) {
-        if (shopChest.isUnlimited) {
-            "無制限"
-        } else {
-            "${shopChest.remainingStock} * ${shopChest.shopStackingAmount}個"
+    /** 在庫・空き容量の表示。キャッシュの値は前回確認時のものなので、その旨を添える。 */
+    private fun formatStock(stock: ShopStock, stackingAmount: Int): String =
+        when (stock) {
+            ShopStock.Unlimited -> "無制限"
+            ShopStock.Unknown -> "不明"
+            is ShopStock.Counted ->
+                "${stock.amount} * ${stackingAmount}個" + if (stock.cached) "(前回確認時)" else ""
         }
-    }
-
 
     private fun getPlayerDistance(playerLocation: Location, shopChest: Shop) =
         hypot(playerLocation.x - shopChest.location.x, playerLocation.z - shopChest.location.z).toInt()
-
-    private suspend fun getBuyingShopCount(shopChest: Shop) = withContext(Dispatchers.minecraft) {
-        if (shopChest.isUnlimited) {
-            "無制限"
-        } else {
-            "${shopChest.remainingSpace} * ${shopChest.shopStackingAmount}個"
-        }
-    }
-
-
 
     /** ショップと同じワールドにある拠点のうち、最も近いものを返す。該当する拠点が無ければ null。 */
     private fun getNearPlace(shopChest: Shop): PlaceData? = get<ConfigData>().placeData.filter {

@@ -5,6 +5,7 @@ import com.ghostchu.quickshop.api.QuickShopAPI
 import dev.nikomaru.advancedshopfinder.commands.EnchantFindCommand
 import dev.nikomaru.advancedshopfinder.commands.FuzzySearchCommand
 import dev.nikomaru.advancedshopfinder.commands.HelpCommand
+import dev.nikomaru.advancedshopfinder.commands.utils.ProfileSuggestions
 import dev.nikomaru.advancedshopfinder.commands.ReloadCommand
 import dev.nikomaru.advancedshopfinder.commands.SettingCommand
 import dev.nikomaru.advancedshopfinder.commands.ShopSearchCommand
@@ -75,6 +76,8 @@ open class AdvancedShopFinder : JavaPlugin() {
 
         with(annotationParser) {
             parse(
+                // 補完はそれを参照するコマンドより先に登録する
+                ProfileSuggestions,
                 EnchantFindCommand,
                 FuzzySearchCommand,
                 ReloadCommand,

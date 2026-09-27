@@ -1,6 +1,7 @@
 package dev.nikomaru.advancedshopfinder.commands
 
 import com.ghostchu.quickshop.api.QuickShopAPI
+import dev.nikomaru.advancedshopfinder.commands.utils.ProfileSuggestions
 import dev.nikomaru.advancedshopfinder.commands.utils.resolveFindOption
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -22,7 +23,7 @@ object EnchantFindCommand: KoinComponent {
     suspend fun enchantFind(
         sender: CommandSender,
         @Argument("enchantment") enchantment: Enchantment,
-        @Flag(value = "profile", aliases = ["p"]) profile: String?,
+        @Flag(value = "profile", aliases = ["p"], suggestions = ProfileSuggestions.PROFILES) profile: String?,
     ) {
         val options = resolveFindOption(sender, profile) ?: return
         val shop = quickShop.shopManager.allShops.filter {
