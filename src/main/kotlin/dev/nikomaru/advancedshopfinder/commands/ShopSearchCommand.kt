@@ -77,9 +77,7 @@ object ShopSearchCommand : KoinComponent {
 
     suspend fun processShops(shop: List<Shop>, sender: CommandSender, message: Component, sum: Int, options: FindOption, buying: Boolean): Pair<Component, Int> {
         // 在庫・空き容量はショップごとに 1 回だけ求め、絞り込みと表示の両方で使う
-        val stocks = withContext(Dispatchers.minecraft) {
-            shop.filter { it.isBuying == buying }.associateWith { ShopStock.of(it, buying) }
-        }
+        val stocks = ShopStock.resolve(plugin, shop.filter { it.isBuying == buying }, buying)
         var filteredShops = stocks.filter { (_, stock) -> stock.isVisible(options.showNoStockShop) }.keys.toList()
         val sortTypes = if (buying) options.sortOption.buySortTypes else options.sortOption.sellSortTypes
         filteredShops = if (sender !is Player) {
@@ -183,13 +181,13 @@ object ShopSearchCommand : KoinComponent {
         return tags.toTypedArray()
     }
 
-    /** 在庫・空き容量の表示。キャッシュの値は前回確認時のものなので、その旨を添える。 */
+    /** 在庫・空き容量の表示。 */
     private fun formatStock(stock: ShopStock, stackingAmount: Int): String =
         when (stock) {
             ShopStock.Unlimited -> "無制限"
             ShopStock.Unknown -> "不明"
             is ShopStock.Counted ->
-                "${stock.amount} * ${stackingAmount}個" + if (stock.cached) "(前回確認時)" else ""
+                "${stock.amount} * ${stackingAmount}個"
         }
 
     private fun getPlayerDistance(playerLocation: Location, shopChest: Shop) =

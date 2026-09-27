@@ -1,17 +1,22 @@
 package dev.nikomaru.advancedshopfinder.utils.shop
 
 import com.ghostchu.quickshop.api.shop.Shop
-import com.ghostchu.quickshop.api.shop.cache.ShopInventoryCountCache
-import java.lang.reflect.Method
-import java.util.concurrent.ConcurrentHashMap
+import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.withContext
+import org.bukkit.Chunk
+import org.bukkit.plugin.Plugin
 
 /**
  * ショップの在庫（販売ショップ）または空き容量（買取ショップ）。
  *
  * QuickShop-Hikari の `getAllShops()` はチャンクが読み込まれていないショップも返すが、
  * そのショップの `remainingStock` / `remainingSpace` はインベントリを参照できず常に 0 になる。
- * そのため読み込まれていないショップは QuickShop が DB に保存している在庫キャッシュを使い、
- * キャッシュも無ければ [Unknown] として扱う（在庫切れとして除外しない）。
+ * そのため [resolve] は、読み込まれていないショップのチャンクを読み込んでから数える。
  */
 sealed interface ShopStock {
     /** アドミンショップなど、在庫・容量の制限が無い。 */
@@ -21,14 +26,12 @@ sealed interface ShopStock {
      * 在庫または空き容量の数。
      *
      * @property amount ショップの取引単位（shopStackingAmount）での数
-     * @property cached チャンクが読み込まれておらず、QuickShop のキャッシュ（前回確認時の値）から取得したか
      */
     data class Counted(
         val amount: Int,
-        val cached: Boolean,
     ) : ShopStock
 
-    /** チャンクが読み込まれておらず、キャッシュも無いため分からない。 */
+    /** ワールドが読み込まれていない・チャンクを読み込めなかったなどで分からない。 */
     data object Unknown : ShopStock
 
     /** 検索結果に表示するか。在庫切れのショップは [showNoStockShop] が true のときだけ表示する。 */
@@ -40,37 +43,69 @@ sealed interface ShopStock {
 
     companion object {
         /**
-         * ショップの在庫・空き容量を求める。メインスレッドで呼び出すこと。
+         * ショップごとの在庫・空き容量を求める。
+         *
+         * チャンクが読み込まれていないショップは、Paper の非同期チャンク読み込み（メインスレッドを止めない）で
+         * チャンクを読み込み、数え終わるまでプラグインのチャンクチケットで読み込んだままにしてから、
+         * QuickShop の `remainingStock` / `remainingSpace` で数える。
          *
          * @param buying 買取ショップとして空き容量を求めるか（false なら在庫）
          */
-        fun of(
+        suspend fun resolve(
+            plugin: Plugin,
+            shops: List<Shop>,
+            buying: Boolean,
+        ): Map<Shop, ShopStock> {
+            val unloaded =
+                withContext(Dispatchers.minecraft) {
+                    shops.filter { shop ->
+                        val location = shop.location
+                        !shop.isUnlimited && location.isWorldLoaded && !location.isChunkLoaded
+                    }
+                }
+            val chunks = loadChunks(unloaded)
+            return withContext(Dispatchers.minecraft) {
+                chunks.forEach { it.addPluginChunkTicket(plugin) }
+                try {
+                    shops.associateWith { count(it, buying) }
+                } finally {
+                    chunks.forEach { it.removePluginChunkTicket(plugin) }
+                }
+            }
+        }
+
+        /** ショップのあるチャンクを重複なく非同期で読み込む。読み込めなかったチャンクは含めない。 */
+        private suspend fun loadChunks(shops: List<Shop>): List<Chunk> =
+            coroutineScope {
+                shops
+                    .map { it.location }
+                    .distinctBy { Triple(it.world.uid, it.blockX shr 4, it.blockZ shr 4) }
+                    .map { location ->
+                        async {
+                            runCatching {
+                                location.world.getChunkAtAsync(location.blockX shr 4, location.blockZ shr 4).await()
+                            }.getOrNull()
+                        }
+                    }.awaitAll()
+                    .filterNotNull()
+            }
+
+        /**
+         * QuickShop の在庫・空き容量の計算はインベントリに触るため、どこから呼ばれても必ずメインスレッドで行う。
+         * （Dispatchers.minecraft はメインスレッドから呼ばれた場合はその場で実行するので、切り替えの待ちは無い）
+         */
+        private suspend fun count(
             shop: Shop,
             buying: Boolean,
-        ): ShopStock {
-            if (shop.isUnlimited) return Unlimited
-            val location = shop.location
-            if (location.isWorldLoaded && location.isChunkLoaded) {
-                return Counted(if (buying) shop.remainingSpace else shop.remainingStock, cached = false)
+        ): ShopStock =
+            withContext(Dispatchers.minecraft) {
+                val location = shop.location
+                when {
+                    shop.isUnlimited -> Unlimited
+                    !location.isWorldLoaded || !location.isChunkLoaded -> Unknown
+                    else -> Counted(if (buying) shop.remainingSpace else shop.remainingStock)
+                }
             }
-            val cache = inventoryCountCache(shop) ?: return Unknown
-            if (!cache.initialized()) return Unknown
-            // 在庫と空き容量は最後に計算した方しか保存されず、もう一方は負の値になる
-            val amount = if (buying) cache.space else cache.stock
-            return if (amount >= 0) Counted(amount, cached = true) else Unknown
-        }
-
-        // ContainerShop#getInventoryCountCache は QuickShop-Hikari 6.3 以降の実装クラスにしか無く、公開 API には無い。
-        // 6.2 でも動くよう、リフレクションで探して無ければ null を返す
-        private val cacheAccessors = ConcurrentHashMap<Class<*>, Method?>()
-
-        private fun inventoryCountCache(shop: Shop): ShopInventoryCountCache? {
-            val accessor =
-                cacheAccessors.computeIfAbsent(shop.javaClass) { type ->
-                    runCatching { type.getMethod("getInventoryCountCache") }.getOrNull()
-                } ?: return null
-            return runCatching { accessor.invoke(shop) as? ShopInventoryCountCache }.getOrNull()
-        }
     }
 }
 
