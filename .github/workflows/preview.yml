@@ -253,6 +253,11 @@ jobs:
           | Tests | Passed | Skipped | Failed |
           |-------|--------|---------|--------|
           | ${{ needs.build-gradle.outputs.test_total }} | ${{ needs.build-gradle.outputs.test_passed }} ✅ | ${{ needs.build-gradle.outputs.test_skipped }} ⏭️ | ${{ needs.build-gradle.outputs.test_failed }} ❌ |
+
+          ### 🦉 In-game screenshots
+          <!-- fukurou:start -->
+          ⏳ Running… (updated by the Game test workflow when it finishes)
+          <!-- fukurou:end -->
           EOF
 
       - name: Create PR comment
