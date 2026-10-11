@@ -120,9 +120,10 @@ object ShopSearchCommand : KoinComponent {
                 async(Dispatchers.async) {
                     val luminescenceShulker = LuminescenceShulker()
                     luminescenceShulker.addTarget(sender)
-                    filteredShops.stream().filter { getPlayerDistance(sender.location, it) < lightningDistance }.forEach {
-                            luminescenceShulker.addBlock(it.location)
-                        }
+                    // 別のワールドのショップは光らせない（同じ座標で今いるワールドに表示されてしまう）
+                    filteredShops
+                        .filter { shop -> getPlayerDistance(sender.location, shop)?.let { it < lightningDistance } == true }
+                        .forEach { luminescenceShulker.addBlock(it.location) }
                     repeat(lightningCount) {
                         luminescenceShulker.display()
                         delay(lightningTimeMills)
@@ -170,8 +171,9 @@ object ShopSearchCommand : KoinComponent {
             SortType.DESC_PRICE_PER_STACK -> compareByDescending { it.price }
             SortType.ASC_PRICE_PER_ITEM -> compareBy { it.price / it.shopStackingAmount }
             SortType.DESC_PRICE_PER_ITEM -> compareByDescending { it.price / it.shopStackingAmount }
-            SortType.ASC_DISTANCE -> compareBy { getPlayerDistance(playerLocation, it) }
-            SortType.DESC_DISTANCE -> compareByDescending { getPlayerDistance(playerLocation, it) }
+            // 別のワールドのショップ（距離が算出できない）は昇順・降順とも末尾に置く
+            SortType.ASC_DISTANCE -> compareBy(nullsLast()) { getPlayerDistance(playerLocation, it) }
+            SortType.DESC_DISTANCE -> compareBy(nullsLast(reverseOrder())) { getPlayerDistance(playerLocation, it) }
             // 同じワールドに拠点が無いショップ（最寄りが算出できない）は昇順・降順とも末尾に置く
             SortType.ASC_DISTANCE_NEAREST -> compareBy(nullsLast()) { getNearestPlaceDistance(it) }
             SortType.DESC_DISTANCE_NEAREST -> compareBy(nullsLast(reverseOrder())) { getNearestPlaceDistance(it) }
@@ -179,14 +181,14 @@ object ShopSearchCommand : KoinComponent {
 
     private fun getNearestPlaceDistance(shopChest: Shop): Double? = getNearPlace(shopChest)?.let { getPlaceDistance(it, shopChest) }
 
-    private fun getTags(shopChest: Shop, count: String, distance: Int, nearPlace: PlaceData?, nearTownDistance: Double?): Array<TagResolver.Single> {
+    private fun getTags(shopChest: Shop, count: String, distance: Int?, nearPlace: PlaceData?, nearTownDistance: Double?): Array<TagResolver.Single> {
         val mm = MiniMessage.miniMessage()
 
         val tags = mutableListOf(Placeholder.component("player-name", if (shopChest.isUnlimited) {
             Component.text("アドミンショップ")
         } else {
             Component.text(Bukkit.getOfflinePlayer(shopChest.owner.uniqueId!!).name.toString())
-        }), Placeholder.component("price", Component.text(shopChest.price.toString())), Placeholder.component("shop-stacking-amount", Component.text(shopChest.shopStackingAmount.toString())), Placeholder.component("count", Component.text(count)), Placeholder.component("world", Component.text(shopChest.location.world.name)), Placeholder.component("x", Component.text(shopChest.location.blockX.toString())), Placeholder.component("y", Component.text(shopChest.location.blockY.toString())), Placeholder.component("z", Component.text(shopChest.location.blockZ.toString())), Placeholder.component("distance", Component.text(distance.toString())), Placeholder.component("shop-type", mm.deserialize(if (shopChest.isBuying) "<color:red>買取" else "<color:green>販売")))
+        }), Placeholder.component("price", Component.text(shopChest.price.toString())), Placeholder.component("shop-stacking-amount", Component.text(shopChest.shopStackingAmount.toString())), Placeholder.component("count", Component.text(count)), Placeholder.component("world", Component.text(shopChest.location.world.name)), Placeholder.component("x", Component.text(shopChest.location.blockX.toString())), Placeholder.component("y", Component.text(shopChest.location.blockY.toString())), Placeholder.component("z", Component.text(shopChest.location.blockZ.toString())), Placeholder.component("distance", Component.text(distance?.toString() ?: "-")), Placeholder.component("shop-type", mm.deserialize(if (shopChest.isBuying) "<color:red>買取" else "<color:green>販売")))
 
         // 最寄りの拠点はショップと同じワールドに拠点がある場合のみ差し込む
         if (nearPlace != null && nearTownDistance != null) {
@@ -209,8 +211,11 @@ object ShopSearchCommand : KoinComponent {
                 }
         }
 
-    private fun getPlayerDistance(playerLocation: Location, shopChest: Shop) =
-        hypot(playerLocation.x - shopChest.location.x, playerLocation.z - shopChest.location.z).toInt()
+    /** プレイヤーからショップまでの水平距離。ショップが別のワールド（ディメンション）にある場合は null。 */
+    private fun getPlayerDistance(playerLocation: Location, shopChest: Shop): Int? {
+        if (playerLocation.world != shopChest.location.world) return null
+        return hypot(playerLocation.x - shopChest.location.x, playerLocation.z - shopChest.location.z).toInt()
+    }
 
     /** ショップと同じワールドにある拠点のうち、最も近いものを返す。該当する拠点が無ければ null。 */
     private fun getNearPlace(shopChest: Shop): PlaceData? = get<ConfigData>().placeData.filter {

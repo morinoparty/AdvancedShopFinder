@@ -93,10 +93,12 @@ object TraceCommand : KoinComponent {
         var shulker: LuminescenceShulker? = null
         try {
             repeat(REFRESH_COUNT) {
-                val eye =
-                    withContext(Dispatchers.minecraft) {
-                        if (player.isOnline && player.world == target.world) player.eyeLocation else null
-                    } ?: return
+                val eye = withContext(Dispatchers.minecraft) { if (player.isOnline) player.eyeLocation else null } ?: return
+                // 別のワールド（ディメンション）に移ったら、同じ座標で今のワールドに表示しないよう案内を終える
+                if (eye.world != target.world) {
+                    player.sendRichMessage("<yellow>別のワールドに移動したため、案内を終了しました。")
+                    return
+                }
                 val distance = eye.distance(center)
                 if (distance <= ARRIVAL_DISTANCE) {
                     player.sendRichMessage("<green>ショップに到着しました。")
