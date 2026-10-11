@@ -36,12 +36,12 @@ plugins/AdvancedShopFinder/playerdata/<player-uuid>/config.json
 | フィールド | 型 | デフォルト | 説明 |
 | --- | --- | --- | --- |
 | `version` | Int | `1` | 設定フォーマットのバージョン。 |
-| `limitAmountOption.buyFindLimit` | Int | `-1` | 買取ショップの検索結果上限（`-1` は無制限）。 |
-| `limitAmountOption.sellFindLimit` | Int | `-1` | 販売ショップの検索結果上限（`-1` は無制限）。 |
+| `limitAmountOption.buyFindLimit` | Int | `-1` | 買取ショップの検索結果上限（`-1` は無制限、`0` は買取ショップを表示しない）。 |
+| `limitAmountOption.sellFindLimit` | Int | `-1` | 販売ショップの検索結果上限（`-1` は無制限、`0` は販売ショップを表示しない）。 |
 | `sortOption.buySortTypes` | SortType[] | `["DESC_PRICE_PER_ITEM"]` | 買取ショップの並び順（優先順位リスト。先頭が第一基準）。 |
 | `sortOption.sellSortTypes` | SortType[] | `["ASC_PRICE_PER_ITEM"]` | 販売ショップの並び順（優先順位リスト。先頭が第一基準）。 |
 | `showNoStockShop` | Boolean | `false` | 在庫切れショップを表示するか。 |
-| `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | オーナーの所持金が不足している買取ショップを表示するか。 |
+| `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | オーナーの所持金が不足している（1 回分も買い取れない）買取ショップを表示するか。所持金は Vault から取得します。 |
 
 ## 設定例
 

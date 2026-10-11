@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 @Tag("search")
 @ExtendWith(ShopFinderServer::class)
 class ShopSearchTest {
-    /** 近くのショップが見つかり、その位置が光る（PacketEvents で送る発光シュルカー）。 */
+    /** 近くのショップが見つかり、その位置が光る（PacketEvents で送る発光する block_display）。 */
     @Test
     @DisplayName("sf search finds a QuickShop shop and highlights it")
     suspend fun `search-highlights-shop`(env: ShopFinderServer) {
@@ -28,7 +28,7 @@ class ShopSearchTest {
 
         alice.sendCommand("sf search diamond")
         alice.awaitChat(Regex("の検索結果: 1件"), timeout = 10.seconds, after = chatMark)
-        // 発光シュルカーは 1 秒表示・0.4 秒非表示を繰り返すので、表示中に撮る
+        // 発光表示は 1 秒表示・0.4 秒非表示を繰り返すので、表示中に撮る
         pause(0.5.seconds)
         alice.screenshot("highlighted-shop")
 

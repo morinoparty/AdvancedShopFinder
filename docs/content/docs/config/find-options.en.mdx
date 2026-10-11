@@ -36,12 +36,12 @@ Each profile is a `FindOption` with the following fields.
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `version` | Int | `1` | Version of the settings format. |
-| `limitAmountOption.buyFindLimit` | Int | `-1` | Result limit for buying shops (`-1` means unlimited). |
-| `limitAmountOption.sellFindLimit` | Int | `-1` | Result limit for selling shops (`-1` means unlimited). |
+| `limitAmountOption.buyFindLimit` | Int | `-1` | Result limit for buying shops (`-1` means unlimited, `0` hides buying shops). |
+| `limitAmountOption.sellFindLimit` | Int | `-1` | Result limit for selling shops (`-1` means unlimited, `0` hides selling shops). |
 | `sortOption.buySortTypes` | SortType[] | `["DESC_PRICE_PER_ITEM"]` | Sort order for buying shops (priority list; the first entry is the primary key). |
 | `sortOption.sellSortTypes` | SortType[] | `["ASC_PRICE_PER_ITEM"]` | Sort order for selling shops (priority list; the first entry is the primary key). |
 | `showNoStockShop` | Boolean | `false` | Whether to show out-of-stock shops. |
-| `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | Whether to show buying shops whose owner lacks enough money. |
+| `showOwnerNotHasEnoughMoneyShop` | Boolean | `false` | Whether to show buying shops whose owner lacks enough money to buy even once. Balances are read through Vault. |
 
 ## Example
 
