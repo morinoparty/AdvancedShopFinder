@@ -12,7 +12,7 @@ import dev.nikomaru.advancedshopfinder.utils.coroutines.async
 import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
 import dev.nikomaru.advancedshopfinder.utils.data.FindOption
 import dev.nikomaru.advancedshopfinder.utils.data.SortType
-import dev.nikomaru.advancedshopfinder.utils.display.LuminescenceShulker
+import dev.nikomaru.advancedshopfinder.utils.display.LuminescenceDisplay
 import dev.nikomaru.advancedshopfinder.utils.shop.ShopStock
 import dev.nikomaru.advancedshopfinder.utils.shop.limitedTo
 import kotlinx.coroutines.Dispatchers
@@ -117,17 +117,18 @@ object ShopSearchCommand : KoinComponent {
             val lightningCount: Int = 10
             val lightningDistance: Int = 200
             plugin.launch {
+                // ショップのブロックを読むので、表示する位置はメインスレッドで決める
+                val luminescenceDisplay = LuminescenceDisplay()
+                luminescenceDisplay.addTarget(sender)
+                // 別のワールドのショップは光らせない（同じ座標で今いるワールドに表示されてしまう）
+                filteredShops
+                    .filter { shop -> getPlayerDistance(sender.location, shop)?.let { it < lightningDistance } == true }
+                    .forEach { luminescenceDisplay.addShop(it.location) }
                 async(Dispatchers.async) {
-                    val luminescenceShulker = LuminescenceShulker()
-                    luminescenceShulker.addTarget(sender)
-                    // 別のワールドのショップは光らせない（同じ座標で今いるワールドに表示されてしまう）
-                    filteredShops
-                        .filter { shop -> getPlayerDistance(sender.location, shop)?.let { it < lightningDistance } == true }
-                        .forEach { luminescenceShulker.addBlock(it.location) }
                     repeat(lightningCount) {
-                        luminescenceShulker.display()
+                        luminescenceDisplay.display()
                         delay(lightningTimeMills)
-                        luminescenceShulker.stop()
+                        luminescenceDisplay.stop()
                         delay(lightningIntervalMills)
                     }
                 }

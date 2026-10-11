@@ -6,7 +6,7 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import dev.nikomaru.advancedshopfinder.AdvancedShopFinder
 import dev.nikomaru.advancedshopfinder.commands.utils.Hidden
 import dev.nikomaru.advancedshopfinder.utils.coroutines.minecraft
-import dev.nikomaru.advancedshopfinder.utils.display.LuminescenceShulker
+import dev.nikomaru.advancedshopfinder.utils.display.LuminescenceDisplay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -24,7 +24,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 検索結果の「[ここまで行く]」から実行され、ショップの位置まで発光シュルカーで案内する。
+ * 検索結果の「[ここまで行く]」から実行され、ショップの位置まで発光するブロック（block_display）で案内する。
  *
  * 検索結果のクリックから使う前提のため、[Hidden] で補完には出さない。
  */
@@ -37,11 +37,11 @@ object TraceCommand : KoinComponent {
     /** この距離まで近づいたら到着として案内を終える。 */
     private const val ARRIVAL_DISTANCE: Double = 3.0
 
-    /** ショップがこれより遠いときは、プレイヤーの前方にショップの方向を示すシュルカーも出す。 */
-    private const val POINTER_MIN_DISTANCE: Double = 12.0
+    /** ショップがこれより遠いときは、ショップの方向を示す目印も出す。 */
+    private const val POINTER_MIN_DISTANCE: Double = 24.0
 
-    /** 方向を示すシュルカーを出す、プレイヤーの目からの距離。 */
-    private const val POINTER_DISTANCE: Double = 6.0
+    /** 方向を示す目印を出す、プレイヤーの目からの距離。近すぎると視界を塞ぐので離して置く。 */
+    private const val POINTER_DISTANCE: Double = 16.0
 
     private val quickShop: QuickShopAPI by inject()
     private val plugin: AdvancedShopFinder by inject()
@@ -84,13 +84,13 @@ object TraceCommand : KoinComponent {
         quickShop.shopManager.getShop(shopId)
             ?: quickShop.shopManager.allShops.firstOrNull { it.shopId == shopId }
 
-    /** [GUIDE_SECONDS] 秒間、ショップの位置（と遠い場合は進む方向）に発光シュルカーを表示し続ける。 */
+    /** [GUIDE_SECONDS] 秒間、ショップの位置（と遠い場合は進む方向）に発光するブロックを表示し続ける。 */
     private suspend fun guide(
         player: Player,
         target: Location,
     ) {
         val center = target.clone().add(0.5, 0.5, 0.5)
-        var shulker: LuminescenceShulker? = null
+        var shown: LuminescenceDisplay? = null
         try {
             repeat(REFRESH_COUNT) {
                 val eye = withContext(Dispatchers.minecraft) { if (player.isOnline) player.eyeLocation else null } ?: return
@@ -105,23 +105,24 @@ object TraceCommand : KoinComponent {
                     return
                 }
 
-                val next = LuminescenceShulker()
+                val next = LuminescenceDisplay()
                 next.addTarget(player)
-                next.addBlock(target)
+                // ショップのブロックを読むので、メインスレッドで追加する
+                withContext(Dispatchers.minecraft) { next.addShop(target) }
                 if (distance > POINTER_MIN_DISTANCE) {
                     val direction = center.toVector().subtract(eye.toVector()).normalize()
-                    next.addBlock(eye.clone().add(direction.multiply(POINTER_DISTANCE)).toBlockLocation())
+                    next.addPointer(eye.clone().add(direction.multiply(POINTER_DISTANCE)))
                 }
                 // 新しい位置を表示してから前回分を消し、表示が途切れないようにする
                 next.display()
-                shulker?.stop()
-                shulker = next
+                shown?.stop()
+                shown = next
                 delay(REFRESH_MILLIS)
             }
             player.sendRichMessage("<gray>案内を終了しました。")
         } finally {
-            // 別の案内に切り替わってキャンセルされた場合も、表示中のシュルカーは必ず消す
-            withContext(NonCancellable) { shulker?.stop() }
+            // 別の案内に切り替わってキャンセルされた場合も、表示中のブロックは必ず消す
+            withContext(NonCancellable) { shown?.stop() }
         }
     }
 }
