@@ -282,7 +282,12 @@ class FindOptionGui(
             else -> if (current < 0) 1 else current + 1
         }
 
-    private fun limitText(value: Int): String = if (value < 0) "無制限" else "$value 件"
+    private fun limitText(value: Int): String =
+        when {
+            value < 0 -> "無制限"
+            value == 0 -> "0 件（表示しない）"
+            else -> "$value 件"
+        }
 
     private fun onOff(value: Boolean): String = if (value) "ON" else "OFF"
 

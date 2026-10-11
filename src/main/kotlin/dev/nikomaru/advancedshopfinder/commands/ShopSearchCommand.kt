@@ -20,6 +20,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -76,9 +78,16 @@ object ShopSearchCommand : KoinComponent {
     }
 
     suspend fun processShops(shop: List<Shop>, sender: CommandSender, message: Component, sum: Int, options: FindOption, buying: Boolean): Pair<Component, Int> {
+        val limit = if (buying) options.limitAmountOption.buyFindLimit else options.limitAmountOption.sellFindLimit
+        // 件数上限が 0 の種類は 1 件も表示しないので、チャンクの読み込みや在庫の計算もしない
+        if (limit == 0) return Pair(message, sum)
         // 在庫・空き容量はショップごとに 1 回だけ求め、絞り込みと表示の両方で使う
         val stocks = ShopStock.resolve(plugin, shop.filter { it.isBuying == buying }, buying)
-        var filteredShops = stocks.filter { (_, stock) -> stock.isVisible(options.showNoStockShop) }.keys.toList()
+        var filteredShops =
+            stocks
+                .filter { (_, stock) -> stock.isVisible(options.showNoStockShop, options.showOwnerNotHasEnoughMoneyShop) }
+                .keys
+                .toList()
         val sortTypes = if (buying) options.sortOption.buySortTypes else options.sortOption.sellSortTypes
         filteredShops = if (sender !is Player) {
             if (buying) filteredShops.sortedBy { it.price } else filteredShops.sortedByDescending { it.price }
@@ -91,7 +100,6 @@ object ShopSearchCommand : KoinComponent {
             if (comparator != null) filteredShops.sortedWith(comparator) else filteredShops
         }
         // 並び替えた後に、プロファイルの件数上限で先頭から切り出す
-        val limit = if (buying) options.limitAmountOption.buyFindLimit else options.limitAmountOption.sellFindLimit
         filteredShops = filteredShops.limitedTo(limit)
         var newMessage = message
         var newSum = sum
@@ -102,7 +110,7 @@ object ShopSearchCommand : KoinComponent {
             newSum++
         }
 
-        if (sender is Player) {
+        if (sender is Player && filteredShops.isNotEmpty()) {
 
             val lightningTimeMills: Long = 1000
             val lightningIntervalMills: Long = 400
@@ -141,7 +149,14 @@ object ShopSearchCommand : KoinComponent {
         // ショップと同じワールドに拠点が無い場合は最寄りの拠点を表示しないフォーマットを使う
         val format = if (nearPlace != null) config.format else config.formatWithoutNearTown
         val message = mm.deserialize(format, *tags).hoverEvent(item.asHoverEvent())
-        return message
+        if (sender !is Player) return message
+        // クリックするとショップまで案内する（/sf trace は補完に出さない隠しコマンド）
+        val traceButton =
+            mm
+                .deserialize("<aqua>[ここまで行く]")
+                .clickEvent(ClickEvent.runCommand("/sf trace ${shopChest.shopId}"))
+                .hoverEvent(HoverEvent.showText(mm.deserialize("<gray>クリックするとこのショップまで案内します")))
+        return Component.text().append(message, Component.text(" "), traceButton).build()
     }
 
 
@@ -187,7 +202,11 @@ object ShopSearchCommand : KoinComponent {
             ShopStock.Unlimited -> "無制限"
             ShopStock.Unknown -> "不明"
             is ShopStock.Counted ->
-                "${stock.amount} * ${stackingAmount}個"
+                if (stock.limitedByMoney) {
+                    "${stock.amount} * ${stackingAmount}個 (オーナーの所持金まで)"
+                } else {
+                    "${stock.amount} * ${stackingAmount}個"
+                }
         }
 
     private fun getPlayerDistance(playerLocation: Location, shopChest: Shop) =

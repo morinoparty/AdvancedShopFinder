@@ -180,6 +180,8 @@ sourceSets.main {
             libraries = libs.bundles.coroutines.asString() +
                 listOf("org.jetbrains.kotlin:kotlin-stdlib:2.4.20")
             depend = listOf("QuickShop-Hikari", "packetevents")
+            // 買取ショップのオーナーの所持金を数えるのに使う（無ければ空き容量だけで数える）
+            softDepend = listOf("Vault")
         }
     }
 }

@@ -5,10 +5,12 @@ import com.github.retrooper.packetevents.PacketEvents
 import dev.nikomaru.advancedshopfinder.commands.EnchantFindCommand
 import dev.nikomaru.advancedshopfinder.commands.FuzzySearchCommand
 import dev.nikomaru.advancedshopfinder.commands.HelpCommand
+import dev.nikomaru.advancedshopfinder.commands.utils.HiddenCommands
 import dev.nikomaru.advancedshopfinder.commands.utils.ProfileSuggestions
 import dev.nikomaru.advancedshopfinder.commands.ReloadCommand
 import dev.nikomaru.advancedshopfinder.commands.SettingCommand
 import dev.nikomaru.advancedshopfinder.commands.ShopSearchCommand
+import dev.nikomaru.advancedshopfinder.commands.TraceCommand
 import dev.nikomaru.advancedshopfinder.commands.utils.parser.EnchantmentParser
 import dev.nikomaru.advancedshopfinder.commands.utils.parser.MaterialArrayParser
 import dev.nikomaru.advancedshopfinder.files.server.Config
@@ -73,6 +75,8 @@ open class AdvancedShopFinder : JavaPlugin() {
 
         val annotationParser = AnnotationParser(commandManager, CommandSender::class.java)
         annotationParser.installCoroutineSupport()
+        // @Hidden を付けたコマンド（検索結果のクリックから使う /sf trace など）は補完に出さない
+        HiddenCommands.install(annotationParser)
 
         with(annotationParser) {
             parse(
@@ -82,6 +86,7 @@ open class AdvancedShopFinder : JavaPlugin() {
                 FuzzySearchCommand,
                 ReloadCommand,
                 ShopSearchCommand,
+                TraceCommand,
                 HelpCommand,
                 SettingCommand,
             )
