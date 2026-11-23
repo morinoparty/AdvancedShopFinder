@@ -238,6 +238,7 @@ jobs:
   # コメント作成ジョブ
   comment:
     needs: [setup, build-gradle, upload-s3]
+    runs-on: ubuntu-latest
     # Dependabot runs receive no Actions secrets.
     if: ${{ github.actor != 'dependabot[bot]' && (github.event.action == 'opened' || github.event.action == 'synchronize') }}
     env:
